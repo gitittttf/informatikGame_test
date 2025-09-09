@@ -6,10 +6,9 @@ import java.util.ArrayList;
  * manages the current room, allows navigation between rooms, and provides
  * methods to access and modify room-related information.
  *
- * Key features: - Stores a list of room objects and tracks the current
- * room.</li>
- * - Allows advancing to the next room and adding new rooms.</li>
- * - Provides accessors and mutators for room properties.#
+ * Key features: - Stores a list of room objects and tracks the current room. -
+ * Allows advancing to the next room and adding new rooms. - Provides accessors
+ * and mutators for room properties.
  *
  * @author Simon
  */
