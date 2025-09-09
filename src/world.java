@@ -1,6 +1,7 @@
 
 import java.util.ArrayList;
 // test comment
+
 /**
  * The world class represents a collection of rooms in a game environment. It
  * manages the current room, allows navigation between rooms, and provides
@@ -9,8 +10,6 @@ import java.util.ArrayList;
  * Key features: - Stores a list of room objects and tracks the current room. -
  * Allows advancing to the next room and adding new rooms. - Provides accessors
  * and mutators for room properties.
- *
- * @author Simon
  */
 public class World {
 
