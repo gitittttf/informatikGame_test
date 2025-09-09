@@ -1,4 +1,4 @@
 
-public class battlemanager {
+public class Battlemanager {
 
 }

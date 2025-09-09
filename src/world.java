@@ -12,12 +12,12 @@ import java.util.ArrayList;
  *
  * @author Simon
  */
-public class world {
+public class World {
 
     // Variabeln
     final int room_count;
-    ArrayList<room> roomList;
-    room current_room;
+    ArrayList<Room> roomList;
+    Room current_room;
     int current_room_number;
 
     /**
@@ -28,7 +28,7 @@ public class world {
      * @param roomList The list of rooms that make up the world. The first room
      * in the list will be set as the current room.
      */
-    public world(int room_count, ArrayList<room> roomList) {
+    public World(int room_count, ArrayList<Room> roomList) {
         this.room_count = room_count;
         this.roomList = roomList;
         current_room = roomList.get(0);
@@ -54,7 +54,7 @@ public class world {
      *
      * @param room the room to be added
      */
-    public void add_room(room room) {
+    public void add_room(Room room) {
         roomList.add(room);
     }
 
@@ -63,7 +63,7 @@ public class world {
      *
      * @return the current room instance.
      */
-    public room getCurrent_room() {
+    public Room getCurrent_room() {
         return current_room;
     }
 

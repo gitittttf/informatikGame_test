@@ -1,18 +1,18 @@
 
 import java.util.ArrayList;
 
-public class room {
+public class Room {
 
-    ArrayList<Character> enemyList;
+    ArrayList<Enemy> enemyList;
 
-    public room(String[] enemiesInRoom) {
+    public Room(String[] enemiesInRoom) {
         for (String enemy : enemiesInRoom) {
             enemyList = addEnemy(this.enemyList, enemy);
         }
     }
 
-    ArrayList<Character> addEnemy(ArrayList<Character> enemyList, String enemy) {
-        enemyList.add(new Character(EnemyType.MINI_ZOMBIE));
+    ArrayList<Enemy> addEnemy(ArrayList<Enemy> enemyList, EnemyType enemy) {
+        enemyList.add(new Enemy(enemy));
         return enemyList;
     }
 

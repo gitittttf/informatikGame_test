@@ -1,4 +1,4 @@
 
-public class ability {
+public class Ability {
 
 }

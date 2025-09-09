@@ -1,4 +1,4 @@
 
-public class enemy {
+public class Enemy {
 
 }
