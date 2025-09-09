@@ -62,7 +62,7 @@ public class world {
     /**
      * Returns the current room in the world.
      *
-     * @return the current {@link room} instance.
+     * @return the current room instance.
      */
     public room getCurrent_room() {
         return current_room;
