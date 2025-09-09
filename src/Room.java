@@ -5,7 +5,7 @@ public class Room {
     
     // Constructor
     public Room(EnemyType[] enemiesInRoom) {
-        this.enemyList = new ArrayList<Enemy>(0);
+        this.enemyList = new ArrayList(enemiesInRoom.length);
         for (EnemyType enemy : enemiesInRoom) {
             enemyList.add(new Enemy(enemy));
         }
