@@ -1,16 +1,19 @@
-# informatikGame
+# Informatik Game
 
 Ein Spiel für den Informatikuntericht von Benedikt, Paul M., Simon
 
-## 🚀 Schnellstart
+## Vorraussetzungen
 
-### Voraussetzungen
-- Java 17 oder höher
+### Notwendige INstallationen
+1. **Visual Studio Code** ([Download hier](https://code.visualstudio.com/))
+2. **Java 17 oder höher** ([Eclipse Adoptium](https://adoptium.net/))
+3. **Git** ([Download hier](https://git-scm.com/))
 
-### Spiel starten
-```bash
-# Windows:
-./mvnw.cmd exec:java
+### VSCode Erweiterungen (obligatorisch)
+Erweiterungen (Ctrl+Shift+X) in VSCode:
+- **Extension Pack for Java** (von Microsoft)
+- **Maven for Java** (von Microsoft)
 
-# Linux/Mac:
-./mvnw exec:java
+## Spiel starten
+1. `Main.java` in `src/main/java/` öffnen
+2. F5 drücken oder "Run and Debug"
