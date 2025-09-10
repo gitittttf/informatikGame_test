@@ -6,7 +6,7 @@ Ein Spiel für den Informatikuntericht von Benedikt, Paul M., Simon
 
 ### Notwendige INstallationen
 1. **Visual Studio Code** ([Download hier](https://code.visualstudio.com/))
-2. **Java 17 oder höher** ([Eclipse Adoptium](https://adoptium.net/))
+2. **Java 17 oder höher** ([Oracle Java](https://www.oracle.com/java/))
 3. **Git** ([Download hier](https://git-scm.com/))
 
 ### VSCode Erweiterungen (obligatorisch)
