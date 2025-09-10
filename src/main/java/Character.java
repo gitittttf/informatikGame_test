@@ -1,7 +1,6 @@
-
+import java.lang.Math;
 
 public class Character {
-
     int lifeTotal;
     int armourValue;
     int initiative;
@@ -23,7 +22,7 @@ public class Character {
     public void attack(Character target, int finte, int wuchtschlag) {
         finte = clamp(finte, 0, 3);
         wuchtschlag = clamp(wuchtschlag, 0, 3);
-        int diceRoll = (int) (Math.random() * 19) + 1;
+        int diceRoll = (int)(Math.random() * 19) + 1;
         if (diceRoll <= this.attack - finte - wuchtschlag * 2) {
             int defenseDebuff = 2 * finte;
             int damageBonus = 2 * wuchtschlag;
@@ -33,7 +32,7 @@ public class Character {
 
     //Defense dmageTaken und Verteidigungsdebuff durch Finte
     public void defense(int damageTaken, int defenseDebuff) {
-        int diceRoll = (int) (Math.random() * 20);
+        int diceRoll = (int)(Math.random() * 20);
         if (diceRoll <= this.defense - defenseDebuff) {
             return;
         }

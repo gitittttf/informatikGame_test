@@ -1,6 +1,4 @@
-
 import java.util.ArrayList;
-// test comment
 
 /**
  * The world class represents a collection of rooms in a game environment. It
@@ -27,11 +25,15 @@ public class World {
      * @param roomList The list of rooms that make up the world. The first room
      * in the list will be set as the current room.
      */
-    public World(int room_count, ArrayList<Room> roomList) {
-        this.room_count = room_count;
-        this.roomList = roomList;
-        current_room = roomList.get(0);
-        current_room_number = 0;
+    
+    public World(RoomType[] roomesInWorld) {
+        this.room_count = roomesInWorld.length;
+        this.roomList = new ArrayList(roomesInWorld.length);
+        for (RoomType room : roomesInWorld) {
+            roomList.add(new Room(room));
+        }
+        this.current_room_number = 0;
+        this.current_room = roomList.get(current_room_number);
     }
 
     /**
@@ -42,45 +44,11 @@ public class World {
      */
     public void advance_to_next_room() {
         if (current_room_number < room_count) {
-            current_room_number++;
-            current_room = roomList.get(current_room_number + 1);
-        } else {
+            this.current_room_number++;
+            this.current_room = roomList.get(current_room_number + 1);
         }
-    }
-
-    /**
-     * Adds a room to the list of rooms in the world.
-     *
-     * @param room the room to be added
-     */
-    public void add_room(Room room) {
-        roomList.add(room);
-    }
-
-    /**
-     * Returns the current room in the world.
-     *
-     * @return the current room instance.
-     */
-    public Room getCurrent_room() {
-        return current_room;
-    }
-
-    /**
-     * Returns the number of the current room.
-     *
-     * @return the current room number as an integer
-     */
-    public int getCurrent_room_number() {
-        return current_room_number;
-    }
-
-    /**
-     * Returns the total number of rooms in the world.
-     *
-     * @return the number of rooms
-     */
-    public int getRoom_count() {
-        return room_count;
+        else {
+            //TODO
+        }
     }
 }
