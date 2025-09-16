@@ -1,11 +1,13 @@
+
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Collections;
+import java.util.Comparator;
 
 public class FightManager {
+
     Player player;
     ArrayList<Character> orderedFighters;
-    
+
     public FightManager(Player player, Enemy[] enemies) {
         ArrayList<Character> orderedFighters = new ArrayList(enemies.length + 1);
         orderedFighters.add(player);
@@ -17,14 +19,13 @@ public class FightManager {
         this.player = player;
         this.orderedFighters = orderedFighters;
     }
-    
+
     //TODO
     public void fightTurn() {
         for (Character fighter : orderedFighters) {
             if (fighter instanceof Player) {
                 continue;
-            }
-            else {
+            } else {
                 fighter.attack(this.player, 0, 0);
             }
         }

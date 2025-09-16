@@ -1,6 +1,3 @@
 {
-    "java.configuration.updateBuildConfiguration": "automatic",
-    "java.project.sourcePaths": ["src/main/java"],
-    "java.project.outputPath": "target/classes",
-    "java.jdt.ls.vmargs": "-Dlanterna.terminal-type=swing"
+  "java.project.outputPath": "bin"
 }
