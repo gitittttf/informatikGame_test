@@ -16,7 +16,7 @@ public enum RoomType {
         EnemyType.MINI_ZOMBIE, EnemyType.MINI_ZOMBIE,
         EnemyType.SCIENTIST
     }),
-    DININGHALL(new EnemyType[]{
+    DINING_HALL(new EnemyType[]{
         EnemyType.MINI_ZOMBIE, EnemyType.MINI_ZOMBIE,
         EnemyType.MINI_ZOMBIE, EnemyType.SCIENTIST,
         EnemyType.SCIENTIST

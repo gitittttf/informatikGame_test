@@ -37,13 +37,6 @@ public class World {
         this.current_room = roomList.get(current_room_number);
     }
 
-    public void gameLoop() {
-        Player mainPlayer = new Player(100, 20, 3, 10, 20, 15); // Random default stats for testing
-        while (true) {
-            FightManager fightmanagerroom = new FightManager(mainPlayer, null);
-        }
-    }
-
     /**
      * Advances the game to the next room if the current room number is less
      * than the total room count. Increments the current room number and updates

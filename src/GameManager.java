@@ -27,7 +27,7 @@ public class GameManager {
     private void initializeGame() {
         // Test Spieler erstellen
         // lifeTotal, armourValue, initiative, attack, defense, damage
-        this.player = new Player(100, 2, 8, 10, 10, 8);
+        this.player = new Player(36, 4, 8, 15, 10, 8);
 
         // Welt mit vordefinierten Räumen erstellen (erstmal so testweise)
         RoomType[] gameRooms = {
@@ -35,7 +35,7 @@ public class GameManager {
             RoomType.FLOOR_ROOM,
             RoomType.LIBRARY_ROOM,
             RoomType.PANTRY,
-            RoomType.DININGHALL,
+            RoomType.DINING_HALL,
             RoomType.LABORATORY,
             RoomType.CORRIDOR,
             RoomType.FINAL_ROOM
@@ -55,7 +55,7 @@ public class GameManager {
 
         // Hauptspielschleife
         while (gameRunning && player.lifeTotal > 0) {
-            // Aktuellen Raum anzeigen
+            // TODO: Aktuellen Raum anzeigen
             // System.out.println("\n--- RAUM " + (world.current_room_number + 1)
             //        + " von " + world.room_count + " ---");
 
@@ -115,8 +115,8 @@ public class GameManager {
         // Start von kampf
         // System.out.println("Gegner in diesem Raum: " + currentRoom.enemyList.size());
         // FightManager mit Player und Enemies aus dem aktuellen Raum initialisieren
-        Enemy[] enemies = currentRoom.enemyList.toArray(new Enemy[0]);
-        FightManager fightManager = new FightManager(player, enemies);
+        Enemy[] enemies = currentRoom.enemyList.toArray(new Enemy[0]); // TODO: löschen
+        FightManager fightManager = new FightManager(player, enemies); // TODO: enemies zu current.Room.enemyList ersetzen
 
         // Kampfschleife (bis du  die fight() Methode fertig hast benedikt)
         // Temporäre Implementation:
@@ -157,7 +157,7 @@ public class GameManager {
             Enemy target = room.enemyList.get(choice);
 
             // Frage nach Kampftaktik
-            System.out.println("Taktik? (1=Normal, 2=Finte, 3=Wuchtschlag)");
+            System.out.println("Taktik? (1 = Normal, 2 = Finte, 3 = Wuchtschlag)");
             System.out.print(">>  ");
             int tactic = scanner.nextInt();
 
@@ -228,13 +228,11 @@ public class GameManager {
         // Je nach Raum unterschiedliche Story
         // TODO: Implementierung mit Story Klasse
         switch (world.current_room_number) {
-            case 0:
+            case 0 ->
                 System.out.println("TEST STORY ERSTER RAUM");
-                break;
-            case 7:
+            case 7 ->
                 System.out.println("TEST STORY LETZER RAUM");
-                break;
-            default:
+            default ->
                 System.out.println("TEST STORY DEFAULT RAUM");
         }
     }
