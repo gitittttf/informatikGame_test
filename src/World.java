@@ -27,10 +27,10 @@ public class World {
      * @param roomList The list of rooms that make up the world. The first room
      * in the list will be set as the current room
      */
-    public World(RoomType[] roomesInWorld) {
-        this.room_count = roomesInWorld.length;
-        this.roomList = new ArrayList(roomesInWorld.length);
-        for (RoomType room : roomesInWorld) {
+    public World(RoomType[] roomsInWorld) {
+        this.room_count = roomsInWorld.length;
+        this.roomList = new ArrayList<>(roomsInWorld.length);
+        for (RoomType room : roomsInWorld) {
             roomList.add(new Room(room));
         }
         this.current_room_number = 0;
@@ -51,11 +51,25 @@ public class World {
      * taken
      */
     public void advance_to_next_room() {
-        if (current_room_number < room_count) {
+        if (current_room_number < room_count - 1) {
             this.current_room_number++;
-            this.current_room = roomList.get(current_room_number + 1);
+            this.current_room = roomList.get(current_room_number);
         } else {
             //TODO
         }
+    }
+
+    /**
+     * Returns if there is still a room left
+     */
+    public boolean hasNextRoom() {
+        return current_room_number < room_count - 1;
+    }
+
+    /**
+     * Returns current progress (for ui)=
+     */
+    public String getProgress() {
+        return "Raum " + (current_room_number + 1) + " von " + room_count; // erstmal testweise, mache ich noch schöner
     }
 }

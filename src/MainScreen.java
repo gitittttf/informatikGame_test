@@ -50,6 +50,9 @@ public class MainScreen {
                 case "n" -> {
                     System.out.println("Starte neues Spiel...");
                     // Spiel starten
+                    GameManager gameManager = new GameManager();
+
+                    gameManager.startGame();
                 }
                 case "x" -> {
                     System.out.println("Beende Spiel...");
