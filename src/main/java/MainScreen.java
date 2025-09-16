@@ -47,15 +47,43 @@ public class MainScreen {
                 ░       ░              ░       ░    ░  ░    ░ ░           ░ 
               ░                                                             
                         """);
-            title.setForegroundColor(TextColor.ANSI.BLACK);
+            title.setForegroundColor(TextColor.ANSI.GREEN);
             panel.addComponent(title);
 
             // Abstand
             panel.addComponent(new EmptySpace(new TerminalSize(0, 1)));
 
+            // Untertitel
+            Label subtitle = new Label("Ein Zombie-Survivel-Dungeon-Irgendwas-Spiel");
+            subtitle.setForegroundColor(TextColor.ANSI.CYAN);
+            panel.addComponent(subtitle);
+
+            panel.addComponent(new EmptySpace(new TerminalSize(0, 2)));
+
             // Buttons
-            panel.addComponent(new Button("Spiel starten", () -> {
-                // Hier später die Logik für Spielstart
+            panel.addComponent(new Button(">>  Neues Spiel starten", () -> {
+                // Screen schließen und Spiel starten
+                try {
+                    screen.stopScreen();
+
+                    // GameManager starten (gerade noch in einer anderen branch)
+                    // GameManager gameManager = new GameManager();
+                    // gameManager.startGame();
+                    // Nach Spielende: Zurück zum Hauptmenü oder beenden
+                    System.out.println("\nDrücke Enter um zu beenden...");
+                    System.in.read();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }));
+
+            panel.addComponent(new Button("Einstellungen", () -> {
+                // Einstellungen (optional)
+            }));
+
+            panel.addComponent(new Button("Anleitung", () -> {
+                // Anleitung (optional)
             }));
 
             panel.addComponent(new Button("Spiel beenden", () -> System.exit(0)));

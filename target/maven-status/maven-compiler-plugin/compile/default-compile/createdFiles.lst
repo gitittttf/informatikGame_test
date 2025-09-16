@@ -5,7 +5,8 @@ MainScreen.class
 Room.class
 Player.class
 Character.class
+FightManager.class
 Story.class
 Ability.class
 Enemy.class
-Battlemanager.class
+RoomType.class
