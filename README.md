@@ -5,9 +5,9 @@ Ein Spiel für den Informatikuntericht von Benedikt, Paul M., Simon
 ## Vorraussetzungen
 
 ### Notwendige INstallationen
-1. **Visual Studio Code** ([Download hier](https://code.visualstudio.com/))
-2. **Java 17 oder höher** ([Oracle Java](https://www.oracle.com/java/))
-3. **Git** ([Download hier](https://git-scm.com/))
+1. **Visual Studio Code** ([Download](https://code.visualstudio.com/))
+2. **Java 17 oder höher** ([Download](https://www.oracle.com/java/))
+3. **Git** ([Download](https://git-scm.com/))
 
 ### VSCode Erweiterungen (obligatorisch)
 Erweiterungen (Ctrl+Shift+X) in VSCode:
