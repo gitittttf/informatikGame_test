@@ -1,3 +1,4 @@
+package com.informatikgame.world;
 
 public class Room {
 

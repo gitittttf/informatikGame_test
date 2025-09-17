@@ -1,21 +1,21 @@
+package com.informatikgame.entities;
 
-import java.lang.Math;
-import java.util.*;
+import java.util.Comparator;
 
 public class Character {
 
-    int lifeTotal;
-    int armourValue;
-    int initiative;
-    int attack;
-    int defense;
-    int damage;
-    String type;
+    protected int lifeTotal;
+    protected int armorValue;
+    protected int initiative;
+    protected int attack;
+    protected int defense;
+    protected int damage;
+    protected String type;
 
     // Constructor
-    public Character(int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage, String type) {
+    public Character(int lifeTotal, int armorValue, int initiative, int attack, int defense, int damage, String type) {
         this.lifeTotal = lifeTotal;
-        this.armourValue = armourValue;
+        this.armorValue = armorValue;
         this.initiative = initiative;
         this.attack = attack;
         this.defense = defense;
@@ -51,9 +51,9 @@ public class Character {
             System.out.println(this.type + " parried successfully.");
             return;
         }
-        this.lifeTotal -= damageTaken - this.armourValue;
+        this.lifeTotal -= damageTaken - this.armorValue;
         System.out.println(this.type + " failed to parry.");
-        System.out.println(this.type + " takes " + (damageTaken - this.armourValue) + " damage.");
+        System.out.println(this.type + " takes " + (damageTaken - this.armorValue) + " damage.");
     }
 
     //Utilities
@@ -61,11 +61,34 @@ public class Character {
         return Math.max(min, Math.min(max, value));
     }
 
-    public static Comparator<Character> initiativeComparator = new Comparator<Character>() {
-        @Override
-        public int compare(Character c1, Character c2) {
-            return Integer.compare(c2.initiative, c1.initiative);
-        }
-    };
+    public static Comparator<Character> initiativeComparator = (Character c1, Character c2) -> Integer.compare(c2.initiative, c1.initiative);
+
+    public int getLifeTotal() {
+        return lifeTotal;
+    }
+
+    public int getArmorValue() {
+        return armorValue;
+    }
+
+    public int getInitiative() {
+        return initiative;
+    }
+
+    public int getAttack() {
+        return attack;
+    }
+
+    public int getDefense() {
+        return defense;
+    }
+
+    public int getDamage() {
+        return damage;
+    }
+
+    public String getType() {
+        return type;
+    }
 
 }

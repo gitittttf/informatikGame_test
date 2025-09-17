@@ -1,5 +1,9 @@
+package com.informatikgame.core;
 
-import java.util.Scanner;
+import com.informatikgame.combat.FightManager;
+import com.informatikgame.entities.Player;
+import com.informatikgame.world.RoomType;
+import com.informatikgame.world.World;
 
 /**
  * Habe den main game loop jetzt hier im game manager gemacht. damit kann ich
@@ -9,8 +13,6 @@ public class GameManager {
 
     private World world;
     private FightManager fightManager;
-    private Scanner scanner;
-    private boolean gameRunning;
 
     // Konstruktor
     public GameManager() {
@@ -38,5 +40,13 @@ public class GameManager {
         };
 
         this.world = new World(gameRooms);
+    }
+
+    public World getWorld() {
+        return world;
+    }
+
+    public FightManager getFightManager() {
+        return fightManager;
     }
 }

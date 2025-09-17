@@ -1,3 +1,4 @@
+package com.informatikgame.world;
 
 public enum EnemyType {
     //int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage, String enemyType

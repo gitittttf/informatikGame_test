@@ -1,3 +1,6 @@
+package com.informatikgame.entities;
+
+import com.informatikgame.world.EnemyType;
 
 public class Enemy extends Character {
 

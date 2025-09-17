@@ -1,3 +1,4 @@
+package com.informatikgame.world;
 
 import java.util.ArrayList;
 
@@ -28,7 +29,7 @@ public class World {
      */
     public World(RoomType[] roomesInWorld) {
         this.room_count = roomesInWorld.length;
-        this.roomList = new ArrayList(roomesInWorld.length);
+        this.roomList = new ArrayList<>(roomesInWorld.length);
         for (RoomType room : roomesInWorld) {
             roomList.add(new Room(room));
         }
@@ -49,5 +50,9 @@ public class World {
         } else {
             //TODO
         }
+    }
+
+    public Room getCurrent_room() {
+        return current_room;
     }
 }

@@ -1,3 +1,4 @@
+package com.informatikgame.world;
 
 public enum RoomType {
     //enemy list für jeden room
