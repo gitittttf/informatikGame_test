@@ -1,23 +1,14 @@
 
-import java.util.ArrayList;
-
 public class Room {
 
-    ArrayList<Enemy> enemyList;
+    EnemyType[] enemiesInRoom;
 
     // Constructor
     public Room(RoomType roomType) {
-        EnemyType[] enemiesInRoom = roomType.enemiesInRoom;
-        this.enemyList = new ArrayList(enemiesInRoom.length);
-        for (EnemyType enemy : enemiesInRoom) {
-            enemyList.add(new Enemy(enemy));
-        }
+        this.enemiesInRoom = roomType.enemiesInRoom;
     }
 
     public Room(EnemyType[] enemiesInRoom) {
-        this.enemyList = new ArrayList(enemiesInRoom.length);
-        for (EnemyType enemy : enemiesInRoom) {
-            enemyList.add(new Enemy(enemy));
-        }
+        this.enemiesInRoom = enemiesInRoom;
     }
 }

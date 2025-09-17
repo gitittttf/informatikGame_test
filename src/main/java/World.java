@@ -1,3 +1,4 @@
+
 import java.util.ArrayList;
 
 /**
@@ -25,7 +26,6 @@ public class World {
      * @param roomList The list of rooms that make up the world. The first room
      * in the list will be set as the current room.
      */
-    
     public World(RoomType[] roomesInWorld) {
         this.room_count = roomesInWorld.length;
         this.roomList = new ArrayList(roomesInWorld.length);
@@ -46,8 +46,7 @@ public class World {
         if (current_room_number < room_count) {
             this.current_room_number++;
             this.current_room = roomList.get(current_room_number + 1);
-        }
-        else {
+        } else {
             //TODO
         }
     }

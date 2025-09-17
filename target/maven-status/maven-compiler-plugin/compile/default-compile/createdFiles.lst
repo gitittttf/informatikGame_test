@@ -1,12 +1,14 @@
 EnemyType.class
 World.class
-Main.class
 MainScreen.class
 Room.class
 Player.class
 Character.class
-FightManager.class
+Character$1.class
 Story.class
 Ability.class
-Enemy.class
+GameManager.class
 RoomType.class
+Main.class
+FightManager.class
+Enemy.class
