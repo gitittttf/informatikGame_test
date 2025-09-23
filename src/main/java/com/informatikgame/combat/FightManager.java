@@ -20,7 +20,7 @@ public class FightManager {
 
     public boolean fight(EnemyType[] enemyTypesLeftToRight) {
         //Create list with all enemy objects enemiesLeftToRight for fight
-        this.enemiesLeftToRight = new ArrayList(enemyTypesLeftToRight.length);
+        this.enemiesLeftToRight = new ArrayList<>(enemyTypesLeftToRight.length);
         for (EnemyType enemy : enemyTypesLeftToRight) {
             this.enemiesLeftToRight.add(new Enemy(enemy));
         }
