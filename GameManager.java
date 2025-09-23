@@ -21,8 +21,8 @@ public class GameManager {
      */
     private void initializeGame() {
         // Test Spieler erstellen
-        // lifeTotal, armourValue, initiative, attack, defense, damage
-        this.fightManager = new FightManager(new Player(36, 4, 8, 15, 10, 8));
+        // lifeTotal, armourValue, initiative, attack, defense, damage, finteLevel, wuchtschlagLevel
+        this.fightManager = new FightManager(new Player(36, 4, 8, 15, 10, 8, 3, 3));
 
         // Welt mit vordefinierten Räumen erstellen (erstmal so testweise)
         RoomType[] gameRooms = {

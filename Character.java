@@ -8,16 +8,20 @@ public class Character {
     int attack;
     int defense;
     int damage;
+    int finteLevel;
+    int wuchtschlagLevel;
     String type;
 
     // Constructor
-    public Character(int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage, String type) {
+    public Character(int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage, int finteLevel, int wuchtschlagLevel, String type) {
         this.lifeTotal = lifeTotal;
         this.armourValue = armourValue;
         this.initiative = initiative;
         this.attack = attack;
         this.defense = defense;
         this.damage = damage;
+        this.finteLevel = finteLevel;
+        this.wuchtschlagLevel = wuchtschlagLevel;
         this.type = type;
     }
     
@@ -28,8 +32,8 @@ public class Character {
 
     //Attack target, Finte und Wuchtschlag Level 0-3 (Finte erschwert Angriff um 1, Verteidigung Gegner um 2, Wuchtschlag erschwert um 2 für +2 Schaden)
     public void attack(Character target, int finte, int wuchtschlag) {
-        finte = clamp(finte, 0, 3);
-        wuchtschlag = clamp(wuchtschlag, 0, 3);
+        finte = clamp(finte, 0, this.finteLevel);
+        wuchtschlag = clamp(wuchtschlag, 0, this.wuchtschlagLevel);
         int diceRoll = (int)(Math.random() * 19) + 1;
         System.out.println("");
         if (diceRoll <= this.attack - finte - wuchtschlag * 2) {
@@ -47,12 +51,30 @@ public class Character {
     public void defense(int damageTaken, int defenseDebuff) {
         int diceRoll = (int)(Math.random() * 20);
         if (diceRoll <= this.defense - defenseDebuff) {
-            System.out.println(this.type + " parried successfully.");
+            System.out.println(this.type + " parriert erfolgreich.");
             return;
         }
         this.lifeTotal -= damageTaken - this.armourValue;
-        System.out.println(this.type + " failed to parry.");
-        System.out.println(this.type + " takes " + (damageTaken - this.armourValue) + " damage.");
+        System.out.println(this.type + " konnte nicht parieren.");
+        System.out.println(this.type + " nimmt " + (damageTaken - this.armourValue) + " Schaden.");
+    }
+    
+    //Upgrade Character
+    public void upgrade(int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage, int finteLevel, int wuchtschlagLevel) {
+        this.lifeTotal += lifeTotal;
+        this.armourValue += armourValue;
+        this.initiative += initiative;
+        this.attack += attack;
+        this.defense += defense;
+        this.damage += damage;
+        this.finteLevel += finteLevel;
+        this.wuchtschlagLevel += wuchtschlagLevel;
+    }
+    
+    //Upgrade Character with Upgrade Type
+    public void upgrade(UpgradeType upgradeType)
+    {
+        upgrade(upgradeType.lifeTotal, upgradeType.armourValue, upgradeType.initiative, upgradeType.attack, upgradeType.defense, upgradeType.damage, upgradeType.finteLevel, upgradeType.wuchtschlagLevel);
     }
 
     //Utilities

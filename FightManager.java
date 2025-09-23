@@ -20,7 +20,7 @@ public class FightManager {
         }
         
         System.out.println("");
-        System.out.println("Fight starts!");
+        System.out.println("Der Kampf beginnt!");
         
         for (int i = 1; (this.player.lifeTotal > 0 && enemiesLeftToRight.size() > 0); i++)
         {
@@ -33,18 +33,18 @@ public class FightManager {
     
     
     public void printCurrentFightStatus(int roundCounter) {
-        System.out.println("Round " + roundCounter + ":");
+        System.out.println("Runde " + roundCounter + ":");
         System.out.println("");
         
-        System.out.println("You have " + player.lifeTotal + " life.");
+        System.out.println("Du hast " + player.lifeTotal + " Leben.");
         System.out.println("");
         
-        StringBuilder sb = new StringBuilder("In front of you are (left to right): ");
+        StringBuilder sb = new StringBuilder("Vor dir stehen (von links nach rechts): ");
         
         int i = 0;
         for (Character enemy : this.enemiesLeftToRight) {
-            if (i == 0) sb.append(enemy.type);
-            else sb.append(", " + enemy.type);
+            if (i == 0) sb.append(enemy.type + " (" + enemy.lifeTotal + " Leben)");
+            else sb.append(", " + enemy.type + " (" + enemy.lifeTotal + " Leben)");
             i++;
         }
         
@@ -57,7 +57,7 @@ public class FightManager {
         Scanner scanner = new Scanner(System.in);
         boolean validImput = false;
         while (!validImput) {
-            System.out.println("Choose enemy to attack (1-" + this.enemiesLeftToRight.size() + ", counting from left):");
+            System.out.println("Wen möchtest du angreifen (1-" + this.enemiesLeftToRight.size() + ", von links):");
             System.out.print(">>  ");
             
             int choice = scanner.nextInt() - 1;
@@ -65,11 +65,11 @@ public class FightManager {
                 action[0] = choice;
                 validImput = true;
             }
-            else System.out.print("Invalid input. Try again!");
+            else System.out.print("Ungültige Eingabe. Versuch es nochmal!");
         }
         validImput = false;
         while (!validImput) {
-            System.out.println("Feint level (0-3):");
+            System.out.println("Finte Level (0-" + this.player.finteLevel + "):");
             System.out.print(">>  ");
             
             int choice = scanner.nextInt();
@@ -80,7 +80,7 @@ public class FightManager {
         }
         validImput = false;
         while (!validImput) {
-            System.out.println("Forceful Blow level (0-3):");
+            System.out.println("Wuchtschlag Level (0-" + this.player.wuchtschlagLevel + "):");
             System.out.print(">>  ");
             
             int choice = scanner.nextInt();
@@ -111,8 +111,8 @@ public class FightManager {
                 actingFighter.attack(this.enemiesLeftToRight.get(action[0]), action[1], action[2]);
             }
             else {
-                int randomNumberFinte = (int)(Math.random() * 3);
-                int randomNumberWuchtschlag = (int)(Math.random() * 3);
+                int randomNumberFinte = (int)(Math.random() * actingFighter.finteLevel);
+                int randomNumberWuchtschlag = (int)(Math.random() * actingFighter.wuchtschlagLevel);
                 actingFighter.attack(this.player, randomNumberFinte, randomNumberWuchtschlag);
             }
         }
