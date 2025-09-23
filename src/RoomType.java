@@ -1,6 +1,5 @@
-
 public enum RoomType {
-    //int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage
+    //enemy list für jeden room
     ZOMBIE_ROOM(new EnemyType[]{
         EnemyType.MINI_ZOMBIE,
         EnemyType.MINI_ZOMBIE
