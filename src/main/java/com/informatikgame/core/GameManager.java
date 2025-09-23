@@ -18,14 +18,23 @@ import com.informatikgame.world.World;
 public class GameManager {
 
     public interface GameEventListener {
+
         void onCombatLogUpdate(String message);
+
         void onRoomChange(int roomNumber, int totalRooms, String roomName);
+
         void onPlayerHealthChange(int current, int max);
+
         void onEnemyUpdate(Enemy[] enemies);
+
         void onCombatStart();
+
         void onCombatEnd(boolean won);
+
         void onGameOver();
+
         void onVictory();
+
         void onPlayerAction(String action);
     }
 
@@ -276,7 +285,7 @@ public class GameManager {
     }
 
     /**
-     * Gibt den aktuellen Raum-Namen zurück
+     * Gibt den aktuellen raumnamen zurück
      */
     public String getCurrentRoomName() {
         int index = Math.min(world.getCurrent_room_number(), roomNames.length - 1);
@@ -284,11 +293,10 @@ public class GameManager {
     }
 
     /**
-     * Gibt die aktuelle Raum-Beschreibung zurück
+     * Gibt die aktuelle raumbeschreibung zurück
      */
     public String getRoomDescription() {
-        String[] descriptions = {
-            // beschreibungen
+        String[] descriptions = { // beschreibungen
         };
 
         int index = Math.min(world.getCurrent_room_number(), descriptions.length - 1);
