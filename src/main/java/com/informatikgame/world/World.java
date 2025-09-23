@@ -44,7 +44,7 @@ public class World {
      * taken.
      */
     public void advance_to_next_room() {
-        if (current_room_number < room_count) {
+        if (current_room_number < room_count - 1) {
             this.current_room_number++;
             this.current_room = roomList.get(current_room_number + 1);
         } else {
@@ -54,5 +54,17 @@ public class World {
 
     public Room getCurrent_room() {
         return current_room;
+    }
+
+    public int getRoom_count() {
+        return room_count;
+    }
+
+    public int getCurrent_room_number() {
+        return current_room_number;
+    }
+
+    public ArrayList<Room> getRoomList() {
+        return roomList;
     }
 }

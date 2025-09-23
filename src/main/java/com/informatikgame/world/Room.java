@@ -12,4 +12,8 @@ public class Room {
     public Room(EnemyType[] enemiesInRoom) {
         this.enemiesInRoom = enemiesInRoom;
     }
+
+    public EnemyType[] getEnemiesInRoom() {
+        return enemiesInRoom;
+    }
 }
