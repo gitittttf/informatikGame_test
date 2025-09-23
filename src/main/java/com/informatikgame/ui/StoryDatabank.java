@@ -1,3 +1,4 @@
+package com.informatikgame.ui;
 
 public enum StoryDatabank {
 

@@ -164,25 +164,11 @@ public class GameManager {
      * Prüft ob es weitere Räume gibt
      */
     private void checkForNextRoom() {
-        if (world.getgetCurrent_room_number()          {
-            () < world.getgetCurrent_room_count
-            
-        
-        }()  () - 1
-            
-        
-        
-        
-        
-        
-        
-        
-        
-            ) {
+        if (world.current_room_number < world.room_count - 1) {
             // Warte auf Spieler-Entscheidung
             waitingForInput = true;
             notifyLog("Möchtest du zum nächsten Raum gehen? (J/N)");
-        }else {
+        } else {
             victory();
         }
     }

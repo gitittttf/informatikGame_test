@@ -1,5 +1,4 @@
 package com.informatikgame.world;
-
 import java.util.ArrayList;
 
 /**
@@ -27,9 +26,10 @@ public class World {
      * @param roomList The list of rooms that make up the world. The first room
      * in the list will be set as the current room.
      */
+    
     public World(RoomType[] roomesInWorld) {
         this.room_count = roomesInWorld.length;
-        this.roomList = new ArrayList<>(roomesInWorld.length);
+        this.roomList = new ArrayList(roomesInWorld.length);
         for (RoomType room : roomesInWorld) {
             roomList.add(new Room(room));
         }
@@ -44,27 +44,12 @@ public class World {
      * taken.
      */
     public void advance_to_next_room() {
-        if (current_room_number < room_count - 1) {
+        if (current_room_number < room_count) {
             this.current_room_number++;
             this.current_room = roomList.get(current_room_number + 1);
-        } else {
+        }
+        else {
             //TODO
         }
-    }
-
-    public Room getCurrent_room() {
-        return current_room;
-    }
-
-    public int getRoom_count() {
-        return room_count;
-    }
-
-    public int getCurrent_room_number() {
-        return current_room_number;
-    }
-
-    public ArrayList<Room> getRoomList() {
-        return roomList;
     }
 }

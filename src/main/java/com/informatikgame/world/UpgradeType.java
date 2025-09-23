@@ -1,3 +1,5 @@
+package com.informatikgame.world;
+
 public enum UpgradeType {
     //int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage, int finteLevel, int wuchtschlagLevel
     FINTE_UPGRADE(0, 0, 0, 0, 0, 0, 1, 0);

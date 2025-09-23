@@ -1,20 +1,14 @@
 package com.informatikgame.entities;
 
-public class Player extends Character {
-
+public class Player extends Character
+{
     // Constructor
-    public Player(int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage) {
-        super(lifeTotal, armourValue, initiative, attack, defense, damage, "Player");
+    public Player(int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage, int numW6, int finteLevel, int wuchtschlagLevel)
+    {
+        super(lifeTotal, armourValue, initiative, attack, defense, damage, numW6, finteLevel, wuchtschlagLevel, "Spieler");
     }
-
-    public void takeDamage(int damageAmount) {
-        lifeTotal -= damageAmount;
-        if (this.lifeTotal < 0) {
-            this.lifeTotal = 0;
-        }
-    }
-
-    public void heal(int healAmount) {
-        lifeTotal += healAmount;
+    public Player(PlayerType playerType)
+    {
+        super(playerType.lifeTotal, playerType.armourValue, playerType.initiative, playerType.attack, playerType.defense, playerType.damage, playerType.numW6, playerType.finteLevel, playerType.wuchtschlagLevel, "Spieler");
     }
 }
