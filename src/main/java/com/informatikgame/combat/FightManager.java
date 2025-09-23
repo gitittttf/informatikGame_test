@@ -1,3 +1,9 @@
+package com.informatikgame.combat;
+
+import com.informatikgame.entities.Enemy;
+import com.informatikgame.entities.Player;
+import com.informatikgame.world.EnemyType;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collections;

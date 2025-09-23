@@ -1,3 +1,5 @@
+package com.informatikgame.world;
+
 public enum EnemyType {
     //int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage, int finteLevel, int wuchtschlagLevel String enemyType
     MINI_ZOMBIE(10, 1, 12, 10, 6, 1, 1, 1, 0, "Mini Zombie"),

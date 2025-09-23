@@ -1,3 +1,7 @@
+package com.informatikgame.entities;
+
+import com.informatikgame.world.UpgradeType;
+
 import java.lang.Math;
 import java.util.*;
 

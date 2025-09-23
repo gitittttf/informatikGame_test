@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+package com.informatikgame.world;
 
 public class Room {
     EnemyType[] enemiesInRoom;

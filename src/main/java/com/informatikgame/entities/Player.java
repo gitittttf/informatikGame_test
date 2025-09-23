@@ -1,3 +1,5 @@
+package com.informatikgame.entities;
+
 public class Player extends Character
 {
     // Constructor

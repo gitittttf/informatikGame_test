@@ -1,3 +1,4 @@
+package com.informatikgame.world;
 import java.util.ArrayList;
 
 /**

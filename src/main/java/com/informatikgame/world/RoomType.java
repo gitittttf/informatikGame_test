@@ -1,3 +1,5 @@
+package com.informatikgame.world;
+
 public enum RoomType {
     //enemy list für jeden room
     ZOMBIE_ROOM(new EnemyType[]{

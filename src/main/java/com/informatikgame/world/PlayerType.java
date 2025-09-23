@@ -1,3 +1,5 @@
+package com.informatikgame.world;
+
 public enum PlayerType {
     //int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage, int numW6, int finteLevel, int wuchtschlagLevel
     SWORD_FIGHTER(36, 3, 8, 15, 10, 6, 1, 3, 3),
