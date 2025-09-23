@@ -41,27 +41,6 @@ public enum StoryDatabank {
         Du trittst durch die letzte Sicherheitstür. Ein gigantisches Labor öffnet sich vor dir. Maschinen pfeifen, Flüssigkeiten blubbern in Tanks.
         In der Mitte steht es: das Ergebnis aller Experimente. Der Endboss - ein mutierter Superzombie, aus Dutzenden Leichen zusammengesetzt.
         Du bist allein. Es gibt kein Zurück. Nur den Kampf.
-    """),
-
-    RAUM_11("WIN_ROOM", """
-        Der Superzombie fällt mit einem markerschütternden Schrei. Das Labor beginnt zu beben – Systeme kollabieren, Lichter explodieren.
-        Du findest eine Notausgangskapsel – schwer beschädigt, aber funktionstüchtig. Mit letzter Kraft schleppst du dich hinein.
-        Sekunden später schießt die Kapsel durch das Dach in die Freiheit. Du hast überlebt.
-    """),
-
-    BOOSTER_HEALING_STATION("HEALING_STATION", """
-        In einem abgetrennten Raum findest du eine medizinische Station. Die Systeme laufen noch.
-        Du legst dich auf die Liege – Laser und Nadeln aktivieren sich. Deine Wunden heilen vollständig.
-    """),
-
-    BOOSTER_MEDKIT_ROOM("MEDKIT_ROOM", """
-        Zwischen umgeworfenen Schränken findest du ein tragbares Medkit. Es enthält Schmerzmittel, Verbände und Desinfektionsmittel.
-        Du versorgst deine schlimmsten Verletzungen – genug, um durchzuhalten.
-    """),
-
-    BOOSTER_REGEN_ZONE("REGEN_ZONE", """
-        Ein seltsamer Raum – beleuchtet von pulsierendem, blauen Licht. Die Luft ist warm und ruhig.
-        Während du dich ausruhst, spürst du, wie deine Kräfte langsam zurückkehren. Du regenerierst kontinuierlich etwas Lebensenergie.
     """);
 
     public String story;
