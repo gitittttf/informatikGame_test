@@ -6,16 +6,16 @@ import java.lang.Math;
 import java.util.*;
 
 public class Character {
-    int lifeTotal;
-    int armourValue;
-    int initiative;
-    int attack;
-    int defense;
-    int damage;
-    int numW6;
-    int finteLevel;
-    int wuchtschlagLevel;
-    String type;
+    protected int lifeTotal;
+    protected int armourValue;
+    protected int initiative;
+    protected int attack;
+    protected int defense;
+    protected int damage;
+    protected int numW6;
+    protected int finteLevel;
+    protected int wuchtschlagLevel;
+    protected String type;
 
     // Constructor
     public Character(int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage, int numW6, int finteLevel, int wuchtschlagLevel, String type) {
@@ -90,6 +90,16 @@ public class Character {
         upgrade(upgradeType.lifeTotal, upgradeType.armourValue, upgradeType.initiative, upgradeType.attack, upgradeType.defense, upgradeType.damage, upgradeType.finteLevel, upgradeType.wuchtschlagLevel);
     }
 
+    // Test support Methoden für die Unit Tests
+    public void takeDamage(int damageAmount) {
+        int actualDamage = Math.max(0, damageAmount - armourValue);
+        this.lifeTotal = Math.max(0, this.lifeTotal - actualDamage);
+    }
+
+    public void heal(int healAmount) {
+        this.lifeTotal += healAmount;
+    }
+
     //Utilities
     int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
@@ -102,4 +112,28 @@ public class Character {
         }
     };
 
+    // ===== GETTER METHODEN =====
+    public int getLifeTotal() { return lifeTotal; }
+    public int getArmourValue() { return armourValue; }
+    public int getArmorValue() { return armourValue; }  // Alias für Tests
+    public int getInitiative() { return initiative; }
+    public int getAttack() { return attack; }
+    public int getDefense() { return defense; }
+    public int getDamage() { return damage; }
+    public int getNumW6() { return numW6; }
+    public int getFinteLevel() { return finteLevel; }
+    public int getWuchtschlagLevel() { return wuchtschlagLevel; }
+    public String getType() { return type; }
+
+    // ===== SETTER METHODEN =====
+    public void setLifeTotal(int lifeTotal) { this.lifeTotal = lifeTotal; }
+    public void setArmourValue(int armourValue) { this.armourValue = armourValue; }
+    public void setInitiative(int initiative) { this.initiative = initiative; }
+    public void setAttack(int attack) { this.attack = attack; }
+    public void setDefense(int defense) { this.defense = defense; }
+    public void setDamage(int damage) { this.damage = damage; }
+    public void setNumW6(int numW6) { this.numW6 = numW6; }
+    public void setFinteLevel(int finteLevel) { this.finteLevel = finteLevel; }
+    public void setWuchtschlagLevel(int wuchtschlagLevel) { this.wuchtschlagLevel = wuchtschlagLevel; }
+    public void setType(String type) { this.type = type; }
 }

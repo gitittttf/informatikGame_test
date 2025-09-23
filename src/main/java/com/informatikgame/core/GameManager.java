@@ -7,34 +7,25 @@ import com.informatikgame.combat.FightManager;
 import com.informatikgame.entities.Enemy;
 import com.informatikgame.entities.Player;
 import com.informatikgame.world.EnemyType;
+import com.informatikgame.world.PlayerType;
 import com.informatikgame.world.Room;
 import com.informatikgame.world.RoomType;
 import com.informatikgame.world.World;
 
 /**
- * Habe den main game loop jetzt hier im game manager gemacht. damit kann ich
- * auch koordinieren zwischen World, Story, Player und FightManager
+ * GameManager koordiniert zwischen World, Story, Player und FightManager
  */
 public class GameManager {
 
     public interface GameEventListener {
-
         void onCombatLogUpdate(String message);
-
         void onRoomChange(int roomNumber, int totalRooms, String roomName);
-
         void onPlayerHealthChange(int current, int max);
-
         void onEnemyUpdate(Enemy[] enemies);
-
         void onCombatStart();
-
         void onCombatEnd(boolean won);
-
         void onGameOver();
-
         void onVictory();
-
         void onPlayerAction(String action);
     }
 
@@ -45,6 +36,7 @@ public class GameManager {
     private Queue<String> inputQueue;
     private boolean waitingForInput;
     private boolean gameRunning;
+    private int maxPlayerHealth = 100;  // Für HP anzeige
 
     private String[] roomNames = {
         "Eingangsbereich",
@@ -72,9 +64,10 @@ public class GameManager {
      * Initialisiert das Spiel mit Standardwerten
      */
     private void initializeGame() {
-        // Test Spieler erstellen
+        // Spieler mit PlayerType erstellen (hier testweise SWORD_FIGHTER)
         // lifeTotal, armourValue, initiative, attack, defense, damage
-        this.player = new Player(36, 4, 8, 15, 10, 8);
+        this.player = new Player(PlayerType.SWORD_FIGHTER);
+        this.maxPlayerHealth = player.getLifeTotal();  // Maximum hp speichern
         this.fightManager = new FightManager(player);
 
         // Welt mit vordefinierten Räumen erstellen (erstmal so testweise)
@@ -94,14 +87,13 @@ public class GameManager {
     }
 
     /**
-     * Startet das Spiel (GUI-Version)
+     * Startet das Spiel (GUI Version)
      */
     public void startGame() {
         if (eventListener != null) {
             // Initiale Events
-            eventListener.onRoomChange(0, world.getgetCurrent_room_count()(), roomNames[0]
-            );
-            eventListener.onPlayerHealthChange(player.getLifeTotal(), 100);
+            eventListener.onRoomChange(0, world.getRoom_count(), roomNames[0]);
+            eventListener.onPlayerHealthChange(player.getLifeTotal(), maxPlayerHealth);
         }
 
         // Starte mit dem ersten Raum
@@ -115,7 +107,7 @@ public class GameManager {
         Room currentRoom = world.getCurrent_room();
 
         if (currentRoom.getEnemiesInRoom().length == 0) {
-            notifyLog("Dieser Raum ist leer.");
+            notifyLog("Dieser Raum ist leer");
             checkForNextRoom();
         } else {
             startCombat(currentRoom);
@@ -164,8 +156,8 @@ public class GameManager {
      * Prüft ob es weitere Räume gibt
      */
     private void checkForNextRoom() {
-        if (world.current_room_number < world.room_count - 1) {
-            // Warte auf Spieler-Entscheidung
+        if (world.getCurrent_room_number() < world.getRoom_count() - 1) {
+            // Warte auf choice
             waitingForInput = true;
             notifyLog("Möchtest du zum nächsten Raum gehen? (J/N)");
         } else {
@@ -198,9 +190,7 @@ public class GameManager {
             }
             eventListener.onPlayerAction(action);
         }
-
         // Diese Info wird an FightManager weitergegeben
-        // (Muss noch implementiert werden)
     }
 
     private void processInput() {
@@ -210,8 +200,17 @@ public class GameManager {
                 waitingForInput = false;
                 advanceToNextRoom();
             } else if (input.equalsIgnoreCase("N")) {
-                notifyLog("Du ruhst dich aus...");
-                // Könnte hier Heilung implementieren
+                // falls man ausruhen + heilen haben will:
+                //
+                // notifyLog("Du ruhst dich aus...");
+                // // Kleine Heilung beim Ausruhen
+                // int healAmount = 5;
+                // player.heal(healAmount);
+                // notifyLog("Du heilst " + healAmount + " HP.");
+                // if (eventListener != null) {
+                //     eventListener.onPlayerHealthChange(player.getLifeTotal(), maxPlayerHealth);
+                // }
+                // 
             }
         }
     }
@@ -220,13 +219,13 @@ public class GameManager {
      * Spieler geht zum nächsten Raum
      */
     public void advanceToNextRoom() {
-        if (world.getCurrent_room_number() < world.getRoom_count() - 1) {  // Bug-Fix!
-            world.getCurrent_room_number()++;
-            world.getCurrent_room() = world.getRoomList().get(world.getCurrent_room_number());
+        if (world.hasNextRoom()) {
+            world.advance_to_next_room();
 
             if (eventListener != null) {
-                String roomName = roomNames[Math.min(world.getCurrent_room_number(), roomNames.length - 1)];
-                eventListener.onRoomChange(world.getCurrent_room_number(), world.getRoom_count(), roomName);
+                int roomNum = world.getCurrent_room_number();
+                String roomName = roomNames[Math.min(roomNum, roomNames.length - 1)];
+                eventListener.onRoomChange(roomNum, world.getRoom_count(), roomName);
             }
 
             notifyLog("Du betrittst: " + roomNames[world.getCurrent_room_number()]);
@@ -289,14 +288,7 @@ public class GameManager {
      */
     public String getRoomDescription() {
         String[] descriptions = {
-            "Ein düsterer Eingangsbereich. Die Luft ist stickig und riecht nach Verwesung.",
-            "Ein langer, verlassener Flur. Blutspuren führen tiefer ins Gebäude.",
-            "Die alte Bibliothek. Zerrissene Bücher liegen überall verstreut.",
-            "Eine kleine Speisekammer. Hier riecht es modrig.",
-            "Der große Speisesaal. Umgestürzte Tische zeugen von einem Kampf.",
-            "Das Laboratorium. Zerbrochene Reagenzgläser knirschen unter deinen Füßen.",
-            "Ein dunkler Korridor. Du hörst schwere Schritte in der Ferne.",
-            "Die Boss-Kammer. Eine bedrohliche Aura erfüllt den Raum."
+            // beschreibungen
         };
 
         int index = Math.min(world.getCurrent_room_number(), descriptions.length - 1);

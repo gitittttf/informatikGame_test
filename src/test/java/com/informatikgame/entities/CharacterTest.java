@@ -15,13 +15,14 @@ public class CharacterTest {
     static class TestCharacter extends Character {
 
         public TestCharacter(int lifeTotal, int armorValue, int initiative,
-                int attack, int defense, int damage, String type) {
-            super(lifeTotal, armorValue, initiative, attack, defense, damage, type);
+                int attack, int defense, int damage, int numW6, int finteLevel, int wuchtschlagLevel, String type) {
+            // int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage, int numW6, int finteLevel, int wuchtschlagLevel, String type
+            super(lifeTotal, armorValue, initiative, attack, defense, damage, numW6, finteLevel, wuchtschlagLevel, type);
         }
 
         public void takeDamage(int damageAmount) {
-            if (damageAmount > armorValue) {
-                lifeTotal -= damageAmount - armorValue;
+            if (damageAmount > getArmorValue()) {
+                lifeTotal -= damageAmount - getArmorValue();
             }
         }
 
@@ -32,7 +33,7 @@ public class CharacterTest {
 
     @BeforeEach
     public void setUp() {
-        testCharacter = new TestCharacter(100, 5, 10, 15, 12, 20, "Test Character");
+        testCharacter = new TestCharacter(100, 5, 10, 15, 12, 20, 1, 1, 1, "Test Character");
     }
 
     @Test
