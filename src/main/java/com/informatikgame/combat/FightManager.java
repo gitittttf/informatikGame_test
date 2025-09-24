@@ -2,7 +2,6 @@ package com.informatikgame.combat;
 
 import java.util.ArrayList;
 import java.util.PriorityQueue;
-import java.util.Scanner;
 
 import com.informatikgame.entities.Character;
 import com.informatikgame.entities.Enemy;
@@ -11,157 +10,219 @@ import com.informatikgame.world.EnemyType;
 
 public class FightManager {
 
-    Player player;
-    ArrayList<Enemy> enemiesLeftToRight;
-    @SuppressWarnings({"unused", "FieldMayBeFinal"})
-    private Scanner scanner;
+    public interface CombatEventListener {
+
+        void onRoundStart(int roundNumber);
+
+        void onCombatMessage(String message);
+
+        void onPlayerTurn();
+
+        void onEnemyTurn(Enemy enemy);
+
+        void onPlayerHealthUpdate(int current, int max);
+
+        void onEnemyHealthUpdate(Enemy[] enemies);
+
+        void onCombatEnd(boolean playerWon);
+    }
+
+    private Player player;
+    private ArrayList<Enemy> enemiesLeftToRight;
+    private CombatEventListener eventListener;
+    private boolean waitingForPlayerAction;
+    private int[] pendingPlayerAction;
+    private int currentRound;
+    private PriorityQueue<Character> currentActionQueue;
+    private int playerMaxHP;
 
     public FightManager(Player player) {
         this.player = player;
-        this.scanner = new Scanner(System.in);
+        this.waitingForPlayerAction = false;
+        this.currentRound = 0;
+        this.playerMaxHP = player.getLifeTotal(); // jetziger hp als max hp
     }
 
-    public boolean fight(EnemyType[] enemyTypesLeftToRight) {
-        //Create list with all enemy objects enemiesLeftToRight for fight
+    public void setCombatEventListener(CombatEventListener listener) {
+        this.eventListener = listener;
+    }
+
+    public void startFight(EnemyType[] enemyTypesLeftToRight) {
+        // Create list with all enemy objects for fight
         this.enemiesLeftToRight = new ArrayList<>(enemyTypesLeftToRight.length);
         for (EnemyType enemy : enemyTypesLeftToRight) {
             this.enemiesLeftToRight.add(new Enemy(enemy));
         }
 
-        System.out.println("");
-        System.out.println("Der Kampf beginnt!");
+        this.currentRound = 1;
+        this.waitingForPlayerAction = false;
 
-        for (int i = 1; (this.player.isAlive() && !enemiesLeftToRight.isEmpty()); i++) {
-            fightTurn(i);
+        // Notify GUI that combat has started
+        if (eventListener != null) {
+            eventListener.onCombatMessage("Der Kampf beginnt!");
+            eventListener.onEnemyHealthUpdate(enemiesLeftToRight.toArray(new Enemy[0]));
         }
 
-        //returns true when fight is won, else false
-        return this.player.isAlive();
+        // Start first round
+        startRound();
     }
 
-    public void printCurrentFightStatus(int roundCounter) {
-        System.out.println("");
-        System.out.println("Runde " + roundCounter + ":");
-        System.out.println("");
+    private void startRound() {
+        if (!player.isAlive() || enemiesLeftToRight.isEmpty()) {
+            endFight();
+            return;
+        }
 
-        System.out.println("Du hast " + player.getLifeTotal() + " Leben.");
-        System.out.println("");
+        if (eventListener != null) {
+            eventListener.onRoundStart(currentRound);
+            eventListener.onPlayerHealthUpdate(player.getLifeTotal(), playerMaxHP);
+        }
 
-        StringBuilder sb = new StringBuilder("Vor dir stehen (von links nach rechts): ");
-
-        int i = 0;
+        // Create priority queue for this round
+        currentActionQueue = new PriorityQueue<>(Character.initiativeComparator);
+        currentActionQueue.add(this.player);
         for (Enemy enemy : this.enemiesLeftToRight) {
-            if (i == 0) {
-                sb.append(enemy.getType()).append(" (").append(enemy.getLifeTotal()).append(" Leben)");
-            } else {
-                sb.append(", ").append(enemy.getType()).append(" (").append(enemy.getLifeTotal()).append(" Leben)");
-            }
-            i++;
+            currentActionQueue.add(enemy);
         }
 
-        System.out.println(sb);
+        processNextAction();
     }
 
-    int[] getPlayerAction() {
-        int[] action = new int[3];
+    private void processNextAction() {
+        if (currentActionQueue.isEmpty()) {
+            // Round is finished, clean up dead enemies and start next round
+            this.enemiesLeftToRight.removeIf(character -> !character.isAlive());
 
-        Scanner scanner = new Scanner(System.in);
-        boolean validInput = false;
-
-        System.out.print("");
-        while (!validInput) {
-            System.out.println("Wen möchtest du angreifen (1-" + this.enemiesLeftToRight.size() + ", von links):");
-            System.out.print(">>  ");
-
-            try {
-                int choice = scanner.nextInt() - 1;
-                if (choice >= 0 && choice < this.enemiesLeftToRight.size()) {
-                    action[0] = choice;
-                    validInput = true;
-                } else {
-                    System.out.println("Ungültige Eingabe. Versuch es nochmal");
-                }
-            } catch (Exception e) {
-                System.out.println("Ungültige Eingabe. Bitte eine Zahl eingeben!");
-                scanner.nextLine(); // Clear buffer
+            // Update GUI with current enemy state after removing dead ones
+            if (eventListener != null) {
+                eventListener.onEnemyHealthUpdate(enemiesLeftToRight.toArray(new Enemy[0]));
             }
+
+            currentRound++;
+            startRound();
+            return;
         }
 
-        validInput = false;
-        while (!validInput) {
-            System.out.println("Finte Level (0-" + this.player.getFinteLevel() + "):");
-            System.out.print(">>  ");
+        Character actingFighter = currentActionQueue.poll();
 
-            try {
-                int choice = scanner.nextInt();
-                if (choice >= 0 && choice <= this.player.getFinteLevel()) {
-                    action[1] = choice;
-                    validInput = true;
-                } else {
-                    System.out.println("Ungültige Eingabe. Versuch es nochmal");
-                }
-            } catch (Exception e) {
-                System.out.println("Ungültige Eingabe. Bitte eine Zahl eingeben");
-                scanner.nextLine(); // Clear buffer
-            }
+        // Check if fighter is still alive
+        if (!actingFighter.isAlive()) {
+            processNextAction(); // Skip to next action
+            return;
         }
 
-        validInput = false;
-        while (!validInput) {
-            System.out.println("Wuchtschlag Level (0-" + this.player.getWuchtschlagLevel() + "):");
-            System.out.print(">>  ");
-
-            try {
-                int choice = scanner.nextInt();
-                if (choice >= 0 && choice <= this.player.getWuchtschlagLevel()) {
-                    action[2] = choice;
-                    validInput = true;
-                } else {
-                    System.out.println("Ungültige Eingabe. Versuch es nochmal");
-                }
-            } catch (Exception e) {
-                System.out.println("Ungültige Eingabe. Bitte eine Zahl eingeben");
-                scanner.nextLine(); // Clear buffer
+        if (actingFighter instanceof Player) {
+            // Player's turn - wait for GUI input
+            waitingForPlayerAction = true;
+            if (eventListener != null) {
+                eventListener.onPlayerTurn();
             }
+        } else {
+            // Enemy's turn - process automatically
+            Enemy enemy = (Enemy) actingFighter;
+            if (eventListener != null) {
+                eventListener.onEnemyTurn(enemy);
+            }
+
+            // Enemy attacks with random abilities
+            int randomNumberFinte = (int) (Math.random() * (enemy.getFinteLevel() + 1));
+            int randomNumberWuchtschlag = (int) (Math.random() * (enemy.getWuchtschlagLevel() + 1));
+
+            if (eventListener != null) {
+                eventListener.onCombatMessage(enemy.getType() + " greift an!");
+            }
+
+            enemy.attack(this.player, randomNumberFinte, randomNumberWuchtschlag);
+
+            if (eventListener != null) {
+                eventListener.onPlayerHealthUpdate(player.getLifeTotal(), playerMaxHP);
+            }
+
+            // Continue with next action after a brief pause
+            processNextAction();
         }
-        return action;
     }
 
-    public void fightTurn(int roundCounter) {
-        printCurrentFightStatus(roundCounter);
-
-        //Priority queue
-        PriorityQueue<Character> actionQueue = new PriorityQueue<>(Character.initiativeComparator);
-
-        actionQueue.add(this.player);
-        for (Enemy enemy : this.enemiesLeftToRight) {
-            actionQueue.add(enemy);
+    public void executePlayerAction(int targetEnemyIndex, int finteLevel, int wuchtschlagLevel) {
+        if (!waitingForPlayerAction) {
+            return; // Not waiting for input
         }
 
-        while (!actionQueue.isEmpty()) {
-            Character actingFighter = actionQueue.poll();
-
-            // prüfen ob kämpfer lbet
-            if (!actingFighter.isAlive()) {
-                continue;
+        // Validate input
+        if (targetEnemyIndex < 0 || targetEnemyIndex >= enemiesLeftToRight.size()) {
+            if (eventListener != null) {
+                eventListener.onCombatMessage("Ungültiges Ziel!");
             }
+            return;
+        }
 
-            if (actingFighter instanceof Player) {
-                int[] action = getPlayerAction();
-                Enemy target = this.enemiesLeftToRight.get(action[0]);
-                actingFighter.attack(target, action[1], action[2]);
-            } else {
-                // Gegner greift an (nur wenn noch lebendig)
-                Enemy enemy = (Enemy) actingFighter;
-                if (enemy.isAlive()) {
-                    int randomNumberFinte = (int) (Math.random() * (enemy.getFinteLevel() + 1));
-                    int randomNumberWuchtschlag = (int) (Math.random() * (enemy.getWuchtschlagLevel() + 1));
-                    enemy.attack(this.player, randomNumberFinte, randomNumberWuchtschlag);
-                }
+        if (finteLevel < 0 || finteLevel > player.getFinteLevel()) {
+            if (eventListener != null) {
+                eventListener.onCombatMessage("Ungültiger Finte-Level!");
+            }
+            return;
+        }
+
+        if (wuchtschlagLevel < 0 || wuchtschlagLevel > player.getWuchtschlagLevel()) {
+            if (eventListener != null) {
+                eventListener.onCombatMessage("Ungültiger Wuchtschlag-Level!");
+            }
+            return;
+        }
+
+        // Execute player attack
+        Enemy target = enemiesLeftToRight.get(targetEnemyIndex);
+
+        if (eventListener != null) {
+            String action = "Angriff auf " + target.getType();
+            if (finteLevel > 0) {
+                action += " (Finte Lv." + finteLevel + ")";
+            }
+            if (wuchtschlagLevel > 0) {
+                action += " (Wuchtschlag Lv." + wuchtschlagLevel + ")";
+            }
+            eventListener.onCombatMessage(action);
+        }
+
+        player.attack(target, finteLevel, wuchtschlagLevel);
+
+        if (eventListener != null) {
+            eventListener.onEnemyHealthUpdate(enemiesLeftToRight.toArray(new Enemy[0]));
+        }
+
+        waitingForPlayerAction = false;
+        processNextAction();
+    }
+
+    private void endFight() {
+        boolean playerWon = player.isAlive();
+        if (eventListener != null) {
+            eventListener.onCombatEnd(playerWon);
+        }
+    }
+
+    // Method that GameManager can call to run the fight (for compatibility)
+    public boolean fight(EnemyType[] enemyTypesLeftToRight) {
+        startFight(enemyTypesLeftToRight);
+
+        // For now, we'll simulate the fight synchronously for compatibility
+        // In the future, this should be handled asynchronously through the GUI
+        while (player.isAlive() && !enemiesLeftToRight.isEmpty() && !waitingForPlayerAction) {
+            // This is a temporary solution - in a real GUI implementation,
+            // the fight would be controlled by user input events
+            try {
+                Thread.sleep(100); // Small delay
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
             }
         }
-        // tote entfernen
-        this.enemiesLeftToRight.removeIf(character -> !character.isAlive());
+
+        return player.isAlive();
+    }
+
+    public boolean isWaitingForPlayerAction() {
+        return waitingForPlayerAction;
     }
 
     // ===== GETTER METHODEN =====
