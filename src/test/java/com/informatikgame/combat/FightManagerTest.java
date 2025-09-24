@@ -23,7 +23,8 @@ public class FightManagerTest {
 
     @BeforeEach
     public void setUp() {
-        player = new Player(100, 5, 10, 15, 12, 10);
+        // Use the current PlayerType enum constructor
+        player = new Player(com.informatikgame.world.PlayerType.SWORD_FIGHTER);
         fightManager = new FightManager(player);
     }
 

@@ -3,9 +3,9 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Launch Main with javaw",
+            "name": "Launch Informatik Game",
             "request": "launch",
-            "mainClass": "Main",
+            "mainClass": "com.informatikgame.core.Main",
             "projectName": "informatikgame",
             "vmArgs": "-Dlanterna.terminal-type=swing -Dfile.encoding=UTF-8",
             "console": "internalConsole",

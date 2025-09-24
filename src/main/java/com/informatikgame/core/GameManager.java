@@ -36,6 +36,8 @@ public class GameManager {
         void onVictory();
 
         void onPlayerAction(String action);
+
+        void onWaitingForRoomTransition();
     }
 
     private World world;
@@ -169,6 +171,11 @@ public class GameManager {
             // Warte auf choice
             waitingForInput = true;
             notifyLog("Möchtest du zum nächsten Raum gehen? (J/N)");
+
+            // Notify UI that we're waiting for room transition input
+            if (eventListener != null) {
+                eventListener.onWaitingForRoomTransition();
+            }
         } else {
             victory();
         }
@@ -296,7 +303,7 @@ public class GameManager {
      * Gibt die aktuelle raumbeschreibung zurück
      */
     public String getRoomDescription() {
-        String[] descriptions = {
+        String[] descriptions = { // beschreibungen
             "Du stehst im Eingangsbereich eines verlassenen Gebäudes. Die Luft ist stickig.",
             "Ein langer, dunkler Flur erstreckt sich vor dir. Du hörst seltsame Geräusche.",
             "Eine alte Bibliothek mit verstaubten Büchern. Etwas bewegt sich in den Schatten.",

@@ -119,6 +119,11 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
     }
 
     @Override
+    public void onWaitingForRoomTransition() {
+        currentState = UIState.ROOM_TRANSITION;
+    }
+
+    @Override
     public void onPlayerAction(String action) {
         combatLog.add(">> " + action);
     }
@@ -454,8 +459,11 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
             case ROOM_TRANSITION -> {
                 if (keyStroke.getKeyType() == KeyType.Enter
                         || (keyStroke.getKeyType() == KeyType.Character
-                        && keyStroke.getCharacter() == 'j')) {
+                        && (keyStroke.getCharacter() == 'j' || keyStroke.getCharacter() == 'J'))) {
                     gameManager.handlePlayerInput("J");
+                } else if (keyStroke.getKeyType() == KeyType.Character
+                        && (keyStroke.getCharacter() == 'n' || keyStroke.getCharacter() == 'N')) {
+                    gameManager.handlePlayerInput("N");
                 }
             }
 

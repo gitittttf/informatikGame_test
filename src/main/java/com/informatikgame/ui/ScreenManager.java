@@ -63,12 +63,9 @@ public class ScreenManager {
         // Erstelle Terminal
         terminal = terminalFactory.createTerminal();
 
-        // Wenn es ein Swing-Terminal ist, können wir es anpassen
-        if (terminal instanceof com.googlecode.lanterna.terminal.swing.SwingTerminal) {
-            // Note: Some Swing terminal customization removed for compatibility
-            // The terminal will use default settings
-        }
-
+        // Configure terminal for optimal display
+        // Note: In headless environments, Swing customization isn't available
+        // The terminal will use default settings which work fine for console output
         // Screen erstellen
         screen = new TerminalScreen(terminal);
         screen.startScreen();
