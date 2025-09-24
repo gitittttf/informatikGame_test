@@ -18,7 +18,7 @@ public class MainMenuScreen extends GameScreen {
         "► Einstellungen",
         "► Anleitung",
         "► Credits",
-        "► Beenden"
+        "► Spiel beenden"
     };
 
     // ASCII-Art als Array für bessere Animation
@@ -58,6 +58,7 @@ public class MainMenuScreen extends GameScreen {
             symbol = symbols[(int) (Math.random() * symbols.length)];
 
             // Grün-Töne für Matrix-Effekt
+            // TODO: Random farben für die partikel
             int green = 50 + (int) (Math.random() * 150);
             color = new TextColor.RGB(0, green, 0);
         }
@@ -99,11 +100,12 @@ public class MainMenuScreen extends GameScreen {
             if (animationFrame % 30 == 0 && Math.random() < 0.1) {
                 // Glitch: verschiebe Zeile leicht
                 int offset = (int) (Math.random() * 3) - 1;
-                graphics.setForegroundColor(TextColor.ANSI.RED);
+                graphics.setForegroundColor(new TextColor.RGB(153, 153, 0)); // TODO richtige farbe finden
                 drawCentered(graphics, titleArt[i], titleY + i + offset);
             } else {
                 // Normal: grüne Farbe mit Pulsieren
-                int brightness = 150 + (int) (Math.sin(animationFrame * 0.1 + i) * 50);
+                // int brightness2 = 150 + (int) (Math.cos(animationFrame * 0.2 + i) * 70);
+                int brightness = 150 + (int) (Math.sin(animationFrame * 0.2 + i) * 70);
                 graphics.setForegroundColor(new TextColor.RGB(0, brightness, 0));
                 drawCentered(graphics, titleArt[i], titleY + i);
             }
@@ -155,14 +157,14 @@ public class MainMenuScreen extends GameScreen {
         graphics.setBackgroundColor(ScreenManager.BACKGROUND_COLOR);
         graphics.setForegroundColor(TextColor.ANSI.YELLOW);
         String controls = "↑↓ Navigation | ENTER Auswählen | ESC Zurück";
-        drawCentered(graphics, controls, size.getRows() - 2);
+        drawCentered(graphics, controls, size.getRows() - 1);
 
         // Easter Egg: versteckter Text
-        if (animationFrame > 200) {
-            graphics.setForegroundColor(new TextColor.RGB(10, 10, 10));
-            graphics.putString(new TerminalPosition(0, size.getRows() - 1),
-                    "The cake is a lie...");
-        }
+        // if (animationFrame > 2) {
+        //     graphics.setForegroundColor(new TextColor.RGB(10, 10, 10));
+        //     graphics.putString(new TerminalPosition(0, size.getRows() - 1),
+        //             "Caro stinkt");
+        // }
     }
 
     @Override
