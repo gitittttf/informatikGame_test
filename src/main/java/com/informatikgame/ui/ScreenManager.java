@@ -1,20 +1,19 @@
 package com.informatikgame.ui;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.TextGraphics;
+import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
-import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame;
-import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Zentrale Screen-Verwaltung für das gesamte Spiel. Verwaltet alle Screens und
@@ -65,24 +64,9 @@ public class ScreenManager {
         terminal = terminalFactory.createTerminal();
 
         // Wenn es ein Swing-Terminal ist, können wir es anpassen
-        if (terminal instanceof com.googlecode.lanterna.terminal.swing.SwingTerminal swingTerminal) {
-
-            // Hole das JFrame und setze es auf Vollbild
-            SwingTerminalFrame frame = swingTerminal.getSwingTerminalFrame(); // TODO
-            frame.setTitle("DUNGEON - Zombie Survival");
-
-            // Vollbild-Modus
-            frame.setExtendedState(java.awt.Frame.MAXIMIZED_BOTH);
-            frame.setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-            // Setze Hintergrundfarbe direkt im Terminal
-            swingTerminal.setBackground(java.awt.Color.BLACK);
-            swingTerminal.setForeground(java.awt.Color.GREEN);
-
-            // Größere Schrift für bessere Lesbarkeit
-            java.awt.Font currentFont = swingTerminal.getFont();
-            java.awt.Font newFont = new java.awt.Font("Consolas", java.awt.Font.BOLD, 16);
-            swingTerminal.setFont(newFont);
+        if (terminal instanceof com.googlecode.lanterna.terminal.swing.SwingTerminal) {
+            // Note: Some Swing terminal customization removed for compatibility
+            // The terminal will use default settings
         }
 
         // Screen erstellen

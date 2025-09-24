@@ -296,7 +296,15 @@ public class GameManager {
      * Gibt die aktuelle raumbeschreibung zurück
      */
     public String getRoomDescription() {
-        String[] descriptions = { // beschreibungen
+        String[] descriptions = {
+            "Du stehst im Eingangsbereich eines verlassenen Gebäudes. Die Luft ist stickig.",
+            "Ein langer, dunkler Flur erstreckt sich vor dir. Du hörst seltsame Geräusche.",
+            "Eine alte Bibliothek mit verstaubten Büchern. Etwas bewegt sich in den Schatten.",
+            "Eine kleine Speisekammer mit verfaulten Lebensmitteln. Der Gestank ist überwältigend.",
+            "Ein großer Speisesaal mit umgestürzten Stühlen. Hier fand ein Kampf statt.",
+            "Ein wissenschaftliches Labor mit zerbrochenen Geräten. Chemikalien tropfen vom Tisch.",
+            "Ein schwach beleuchteter Korridor. Du fühlst, dass du beobachtet wirst.",
+            "Die finale Kammer. Hier wartet das Böse, das diesen Ort heimsucht."
         };
 
         int index = Math.min(world.getCurrent_room_number(), descriptions.length - 1);
