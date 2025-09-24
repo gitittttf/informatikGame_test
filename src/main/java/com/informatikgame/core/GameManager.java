@@ -42,12 +42,12 @@ public class GameManager {
     private FightManager fightManager;
     private Player player;
     private GameEventListener eventListener;
-    private Queue<String> inputQueue;
+    private final Queue<String> inputQueue;
     private boolean waitingForInput;
     private boolean gameRunning;
     private int maxPlayerHealth = 100;  // Für HP anzeige
 
-    private String[] roomNames = {
+    private final String[] roomNames = {
         "Eingangsbereich",
         "Verlassener Flur",
         "Alte Bibliothek",

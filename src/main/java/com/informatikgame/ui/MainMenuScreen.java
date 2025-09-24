@@ -42,6 +42,7 @@ public class MainMenuScreen extends GameScreen {
         TextColor color;
         int speed;
 
+        @SuppressWarnings("OverridableMethodCallInConstructor")
         Particle() {
             reset();
         }

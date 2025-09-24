@@ -68,7 +68,7 @@ public class ScreenManager {
         if (terminal instanceof com.googlecode.lanterna.terminal.swing.SwingTerminal swingTerminal) {
 
             // Hole das JFrame und setze es auf Vollbild
-            SwingTerminalFrame frame = swingTerminal.getSwingTerminalFrame();
+            SwingTerminalFrame frame = swingTerminal.getSwingTerminalFrame(); // TODO
             frame.setTitle("DUNGEON - Zombie Survival");
 
             // Vollbild-Modus

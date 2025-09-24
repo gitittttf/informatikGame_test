@@ -8,6 +8,7 @@ import com.informatikgame.ui.ScreenManager;
 
 public class Main {
 
+    @SuppressWarnings("CallToPrintStackTrace")
     public static void main(String[] args) {
         try {
             // ScreenManager initialisieren

@@ -11,7 +11,7 @@ public class World {
 
     // Variabeln
     private final int room_count;
-    private ArrayList<Room> roomList;
+    private final ArrayList<Room> roomList;
     private Room current_room;
     private int current_room_number;
 
@@ -20,7 +20,6 @@ public class World {
      *
      * @param roomsInWorld THe list of rooms in the world.
      */
-    
     public World(RoomType[] roomsInWorld) {
         this.room_count = roomsInWorld.length;
         this.roomList = new ArrayList<>(roomsInWorld.length);
@@ -39,8 +38,7 @@ public class World {
         if (current_room_number < room_count - 1) {
             this.current_room_number++;
             this.current_room = roomList.get(current_room_number);
-        }
-        else {
+        } else {
             System.out.println("Kein weiterer Raum vorhanden!");
         }
     }
@@ -60,13 +58,29 @@ public class World {
     }
 
     // ===== GETTER METHODS =====
-    public int getRoom_count() { return room_count; }
-    public ArrayList<Room> getRoomList() { return roomList; }
-    public Room getCurrent_room() { return current_room; }
-    public int getCurrent_room_number() { return current_room_number; }
+    public int getRoom_count() {
+        return room_count;
+    }
+
+    public ArrayList<Room> getRoomList() {
+        return roomList;
+    }
+
+    public Room getCurrent_room() {
+        return current_room;
+    }
+
+    public int getCurrent_room_number() {
+        return current_room_number;
+    }
 
     // ===== SETTER METHODS =====
-    public void setCurrent_room(Room room) { this.current_room = room; }
-    public void setCurrent_room_number(int number) { this.current_room_number = number; }
-    
+    public void setCurrent_room(Room room) {
+        this.current_room = room;
+    }
+
+    public void setCurrent_room_number(int number) {
+        this.current_room_number = number;
+    }
+
 }

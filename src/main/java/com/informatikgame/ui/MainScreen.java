@@ -18,6 +18,7 @@ import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 
 public class MainScreen {
 
+    @SuppressWarnings("CallToPrintStackTrace")
     public static void show() {
         try {
             // Screen erstellen

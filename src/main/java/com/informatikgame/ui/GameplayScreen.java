@@ -24,6 +24,7 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
     private int currentRoomNumber = 0;
     private int totalRooms = 8;
     private boolean inCombat = false;
+    @SuppressWarnings("FieldMayBeFinal")
     private int selectedAction = 0;
     private int selectedEnemy = 0;
 

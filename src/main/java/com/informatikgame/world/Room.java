@@ -1,11 +1,10 @@
 package com.informatikgame.world;
 
-import java.lang.reflect.Constructor;
-
 public class Room {
+
     EnemyType[] enemiesInRoom;
     String roomName;
-    
+
     // Constructor mit RoomType
     public Room(RoomType roomType) {
         this.enemiesInRoom = roomType.enemiesInRoom;
@@ -19,10 +18,20 @@ public class Room {
     }
 
     // ===== GETTER METHODEN =====
-    public EnemyType[] getEnemiesInRoom() { return enemiesInRoom; }
-    public String getRoomName() { return roomName; }
-    
+    public EnemyType[] getEnemiesInRoom() {
+        return enemiesInRoom;
+    }
+
+    public String getRoomName() {
+        return roomName;
+    }
+
     // ===== SETTER METHODEN =====
-    public void setEnemiesInRoom(EnemyType[] enemies) { this.enemiesInRoom = enemies; }
-    public void setRoomName(String name) { this.roomName = name; }
+    public void setEnemiesInRoom(EnemyType[] enemies) {
+        this.enemiesInRoom = enemies;
+    }
+
+    public void setRoomName(String name) {
+        this.roomName = name;
+    }
 }
