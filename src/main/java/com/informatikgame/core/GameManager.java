@@ -14,32 +14,92 @@ import com.informatikgame.world.RoomType;
 import com.informatikgame.world.World;
 
 /**
- * GameManager koordiniert zwischen World, Story, Player und FightManager
+ * GameManager - Zentrale Spiellogik und Event-Koordination
+ *
+ * Diese Klasse orchestriert das gesamte Spiel und fungiert als Verbindung
+ * zwischen:
+ *
+ * === SYSTEM-KOMPONENTEN ===
+ * <ul>
+ * <li>World: Raum-Navigation und Dungeon-Struktur</li>
+ * <li>FightManager: Kampf-System und Gegner-Interaktionen</li>
+ * <li>Player: Spieler-Zustand und Attribute</li>
+ * <li>Story-System: Narrative Events und Text-Anzeige</li>
+ * <li>UI (GameEventListener): Benutzeroberflächen-Updates</li>
+ * </ul>
+ * === EVENT-SYSTEM === Implementiert Observer-Pattern für UI-Updates: -
+ * Combat-Events: Kampf-Start/Ende, HP-Änderungen - Navigation-Events:
+ * Raum-Wechsel, Fortschritt - Story-Events: Text-Anzeige,
+ * Benutzer-Entscheidungen
+ *
+ * === SPIEL-ABLAUF === 1. Spieler betritt Raum → Story-Anzeige 2.
+ * Benutzer-Input → Navigation oder Kampf 3. Kampf-Resolution → Fortschritt oder
+ * Game Over 4. Raum-Übergang → Wiederholen bis Sieg
  */
 public class GameManager implements FightManager.CombatEventListener {
 
+    /**
+     * Event-Listener Interface für UI-Updates
+     *
+     * Alle Methoden werden vom GameManager aufgerufen, um die
+     * Benutzeroberfläche über Spielzustand-Änderungen zu informieren. Das UI
+     * (GameplayScreen) implementiert dieses Interface.
+     */
     public interface GameEventListener {
 
+        /**
+         * Neue Kampf-Log Nachricht für UI-Anzeige
+         */
         void onCombatLogUpdate(String message);
 
+        /**
+         * Spieler hat neuen Raum betreten
+         */
         void onRoomChange(int roomNumber, int totalRooms, String roomName);
 
+        /**
+         * Spieler-HP hat sich geändert
+         */
         void onPlayerHealthChange(int current, int max);
 
+        /**
+         * Gegner-Liste wurde aktualisiert (HP, Anzahl)
+         */
         void onEnemyUpdate(Enemy[] enemies);
 
+        /**
+         * Kampf hat begonnen - UI in Kampf-Modus wechseln
+         */
         void onCombatStart();
 
+        /**
+         * Kampf beendet - won=true bei Sieg, false bei Niederlage
+         */
         void onCombatEnd(boolean won);
 
+        /**
+         * Spieler ist gestorben - Game Over Screen anzeigen
+         */
         void onGameOver();
 
+        /**
+         * Alle Räume abgeschlossen - Victory Screen anzeigen
+         */
         void onVictory();
 
+        /**
+         * Spieler-Aktion für Debug/Log-Zwecke
+         */
         void onPlayerAction(String action);
 
+        /**
+         * Spieler-Aktion für Debug/Log-Zwecke
+         */
         void onWaitingForRoomTransition();
-        
+
+        /**
+         * Story-Text soll angezeigt werden (Vollbild-Modus)
+         */
         void onStoryDisplay(String storyText);
     }
 
@@ -63,7 +123,13 @@ public class GameManager implements FightManager.CombatEventListener {
         "Boss-Kammer"
     };
 
-    // Konstruktor
+    /**
+     * Initialisiert den GameManager und das Spiel-System
+     *
+     * Erstellt alle benötigten Komponenten: - Input-Queue für asynchrone
+     * Benutzereingaben - Spiel-Zustand Variablen - Ruft initializeGame() für
+     * World/Player Setup auf
+     */
     public GameManager() {
         this.inputQueue = new LinkedList<>();
         this.waitingForInput = false;
@@ -110,7 +176,7 @@ public class GameManager implements FightManager.CombatEventListener {
             String roomStory = getRoomStory();
             eventListener.onStoryDisplay(roomStory);
             // onRoomChange() will be called after story is read in continueAfterStory()
-            
+
             eventListener.onPlayerHealthChange(player.getLifeTotal(), maxPlayerHealth);
         }
 
@@ -312,7 +378,7 @@ public class GameManager implements FightManager.CombatEventListener {
         int index = Math.min(world.getCurrent_room_number(), descriptions.length - 1);
         return descriptions[index];
     }
-    
+
     /**
      * Gibt die vollständige Story für den aktuellen Raum zurück
      */
@@ -327,7 +393,7 @@ public class GameManager implements FightManager.CombatEventListener {
             StoryDatabank.CORRIDOR,
             StoryDatabank.FINAL_ROOM
         };
-        
+
         int index = Math.min(world.getCurrent_room_number(), stories.length - 1);
         return StoryDatabank.getStory(stories[index]);
     }
@@ -373,7 +439,7 @@ public class GameManager implements FightManager.CombatEventListener {
         if (eventListener != null) {
             eventListener.onCombatEnd(playerWon);
         }
-        
+
         if (!playerWon) {
             gameOver();
         } else {

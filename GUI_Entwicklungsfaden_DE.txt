@@ -1,0 +1,368 @@
+# GUI Entwicklungsleitfaden für das Informatik Game
+
+## Überblick & Architektur
+
+Das Informatik Game verwendet ein komplexes Terminal-GUI-System basierend auf der Lanterna-Bibliothek. 
+Diese Anleitung erklärt, wie Sie neue Screens erstellen, bestehende GUI-Features erweitern und 
+spezielle Features wie Settings und "Spiel fortsetzen" implementieren.
+
+### 1. System-Architektur
+
+#### ScreenManager - Das Herzstück
+- **Singleton-Pattern**: `ScreenManager.getInstance()`
+- **Terminal-Initialisierung**: Konfiguriert Lanterna für Replit (headless)
+- **Screen-Verwaltung**: Registriert, wechselt und animiert zwischen Screens
+- **Game-Loop**: 30 FPS mit Input-Handling und Animations-Updates
+- **Fade-Animationen**: Automatische Übergänge zwischen Screens
+
+#### Screen-Lebenszyklus
+Jeder Screen durchläuft folgenden Zyklus:
+1. **initialize()**: Einmalige Initialisierung beim ersten Anzeigen
+2. **render(TextGraphics)**: Zeichnet den Screen-Inhalt (30 FPS)
+3. **handleInput(KeyStroke)**: Verarbeitet Benutzereingaben
+4. **update()**: Aktualisiert Animationen und Zustand
+5. **onEscape()**: Behandelt ESC-Taste für Navigation
+
+#### Farb-Schema (ScreenManager Konstanten)
+- `BACKGROUND_COLOR`: Schwarz (für Terminal-Hintergrund)
+- `PRIMARY_COLOR`: Grün (Hauptfarbe, Matrix-Stil)
+- `SECONDARY_COLOR`: Cyan (Akzent-Farbe)
+- `DANGER_COLOR`: Rot (Fehler, Gefahren)
+- `WARNING_COLOR`: Gelb (Warnungen, Auswahl)
+- `TEXT_COLOR`: Weiß (Standard-Text)
+
+### 2. GUI-Bausteine und Hilfsmethoden
+
+#### GameScreen Basis-Methoden
+```java
+// Text horizontal zentrieren
+drawCentered(graphics, "Mein Text", y);
+
+// Box mit Unicode-Rahmen zeichnen
+drawBox(graphics, x, y, width, height, borderColor, fillColor);
+
+// Animierter Text mit Pulsier-Effekt
+drawAnimatedText(graphics, "Text", x, y, baseColor);
+```
+
+#### Animation-System
+- **animationFrame**: Globaler Frame-Counter (alle 100ms +1)
+- **Mathematik**: `Math.sin(animationFrame * 0.3)` für Pulsier-Effekte
+- **Timing**: 30 FPS Render, 10 FPS Animation-Updates
+- **Performance**: Kurze Berechnungen in render(), keine I/O in update()
+
+#### Partikel-System (Beispiel: MainMenuScreen)
+```java
+class Particle {
+    int x, y, speed;
+    char symbol;
+    TextColor color;
+    
+    // Bewegt Partikel, setzt bei Bedarf zurück
+    void update() { y += speed; if (y >= height) reset(); }
+}
+```
+
+### 3. Neuen Screen erstellen - Schritt-für-Schritt
+
+#### Schritt 1: Screen-Klasse erstellen
+```java
+package com.informatikgame.ui;
+
+public class MeinNeuerScreen extends GameScreen {
+    
+    // Screen-spezifische Variablen
+    private int selectedOption = 0;
+    private boolean animationComplete = false;
+    
+    @Override
+    public void initialize() {
+        // Einmalige Initialisierung
+        // Animation-Counter zurücksetzen
+        // Daten laden
+    }
+    
+    @Override
+    public void render(TextGraphics graphics) {
+        TerminalSize size = screenManager.getSize();
+        
+        // Screen-Inhalt zeichnen
+        // UI-Elemente positionieren
+        // Animationen anwenden
+    }
+    
+    @Override
+    public void handleInput(KeyStroke keyStroke) {
+        // Input-Behandlung basierend auf keyStroke.getKeyType()
+        // Navigation, Auswahl, Zurück
+    }
+    
+    @Override
+    public void update() {
+        super.update(); // WICHTIG: Für animationFrame
+        
+        // Screen-spezifische Animationen
+        // Zustand-Updates
+    }
+    
+    @Override
+    public boolean onEscape() {
+        // Navigation zurück zum Hauptmenü
+        // return true = Spiel beenden
+        // return false = ESC ignorieren
+        screenManager.switchToScreen("menu");
+        return false;
+    }
+}
+```
+
+#### Schritt 2: Screen registrieren (Main.java)
+```java
+// In Main.main() hinzufügen:
+screenManager.registerScreen("mein_screen", new MeinNeuerScreen());
+```
+
+#### Schritt 3: Navigation implementieren
+```java
+// Von anderem Screen aufrufen:
+screenManager.switchToScreen("mein_screen");
+```
+
+#### Akzeptanz-Kriterien für neuen Screen:
+- [ ] Kompiliert ohne Fehler
+- [ ] Wird korrekt registriert in Main.java
+- [ ] ESC-Navigation funktioniert
+- [ ] Keine Rendering-Artefakte bei Terminal-Größe 80x24
+- [ ] Animationen laufen flüssig (30 FPS)
+- [ ] Input wird korrekt verarbeitet
+
+### 4. Settings-Screen implementieren
+
+Der Settings-Screen verwaltet Spiel-Einstellungen mit Persistierung.
+
+#### Schritt 1: Einstellungs-Struktur
+```java
+public class GameSettings {
+    public int musicVolume = 70;        // 0-100
+    public int sfxVolume = 80;          // 0-100  
+    public boolean colorBlindMode = false;
+    public int difficulty = 1;          // 0=Leicht, 1=Normal, 2=Schwer
+    public String language = "DE";      // DE, EN
+    
+    // JSON Serialisierung für Persistierung
+}
+```
+
+#### Schritt 2: Menü-Navigation
+```java
+// Vertikal: Pfeiltasten für Option-Navigation
+// Horizontal: Links/Rechts für Werte ändern
+// Enter: Spezial-Aktionen (Reset, Speichern)
+// ESC: Zurück zum Hauptmenü
+
+private String[] settingLabels = {
+    "Musik Lautstärke",
+    "Effekt Lautstärke", 
+    "Farbenblind Modus",
+    "Schwierigkeit",
+    "Sprache",
+    "Einstellungen zurücksetzen",
+    "Speichern & Zurück"
+};
+```
+
+#### Schritt 3: Persistierung
+```java
+// Speichern in settings.json im Projekt-Verzeichnis
+public void saveSettings() {
+    // GameSettings -> JSON String -> File schreiben
+}
+
+public void loadSettings() {
+    // File lesen -> JSON parsen -> GameSettings
+    // Bei Fehler: Standard-Werte verwenden
+}
+```
+
+#### Schritt 4: Integration
+- Settings beim ScreenManager.initialize() laden
+- Settings in anderen Screens verwenden (Farbschema, Lautstärke)
+- Einstellungen in GameManager integrieren (Schwierigkeit)
+
+#### Akzeptanz-Kriterien Settings-Screen:
+- [ ] Alle Einstellungen visuell korrekt dargestellt
+- [ ] Werte-Änderung per Pfeiltasten funktioniert
+- [ ] Persistierung: Einstellungen überleben Neustart
+- [ ] Rückwärts-kompatibles JSON-Format
+- [ ] Fehlerhandlung: Defekte settings.json wird ignoriert
+- [ ] Visuelles Feedback für alle Aktionen
+
+### 5. "Spiel fortsetzen" implementieren
+
+Das Save/Load-System für Spielstand-Verwaltung.
+
+#### Schritt 1: Spielstand-Struktur
+```java
+public class GameSave {
+    public int currentRoomNumber;       // Aktuelle Raum-Position
+    public int playerHP;                // Spieler-Lebenspunkte  
+    public int playerMaxHP;             // Maximum-Lebenspunkte
+    public String[] unlockedUpgrades;   // Freigeschaltete Verbesserungen
+    public boolean[] completedRooms;    // Abgeschlossene Räume
+    public long saveTimestamp;          // Zeitstempel für Sortierung
+    public String saveName;             // Spielstand-Name (optional)
+}
+```
+
+#### Schritt 2: GameManager Integration
+```java
+// In GameManager hinzufügen:
+public void saveGame(String filename) {
+    GameSave save = new GameSave();
+    save.currentRoomNumber = world.getCurrentRoomNumber();
+    save.playerHP = player.getLifeTotal();
+    // ... weitere Daten sammeln
+    
+    // JSON schreiben nach save.json
+}
+
+public boolean loadGame(String filename) {
+    try {
+        // JSON lesen und parsen
+        // Spielzustand wiederherstellen
+        return true;
+    } catch (Exception e) {
+        return false; // Lade-Fehler
+    }
+}
+```
+
+#### Schritt 3: Menü-Integration (MainMenuScreen)
+```java
+// In executeOption() für Option 1 (Spiel fortsetzen):
+case 1 -> {
+    if (gameManager.saveExists("save.json")) {
+        if (gameManager.loadGame("save.json")) {
+            screenManager.switchToScreen("game");
+        } else {
+            // Fehler-Dialog anzeigen
+            showErrorMessage("Spielstand beschädigt!");
+        }
+    } else {
+        // Info-Dialog anzeigen
+        showInfoMessage("Kein gespeicherter Spielstand gefunden.");
+    }
+}
+```
+
+#### Schritt 4: Auto-Save System
+- Automatisches Speichern nach jedem abgeschlossenen Raum
+- Backup-System: Behalte letzten funktionierenden Spielstand
+- Kompression für größere Spielstände
+
+#### Akzeptanz-Kriterien "Spiel fortsetzen":
+- [ ] Save/Load ist idempotent (mehrfaches Laden = gleiches Ergebnis)
+- [ ] Rückwärts-kompatibles JSON-Format
+- [ ] Fehlerhandling mit Benutzer-Feedback
+- [ ] Auto-Save nach wichtigen Ereignissen
+- [ ] Spielstand-Validierung beim Laden
+- [ ] Graceful Degradation bei kaputten Saves
+
+### 6. State-Management für komplexe Screens
+
+Komplexere Screens (wie GameplayScreen) nutzen State-Maschinen:
+
+#### State-Pattern Beispiel:
+```java
+private enum UIState {
+    MENU_NAVIGATION,    // Menü durchblättern
+    VALUE_EDITING,      // Wert ändern (Slider)
+    CONFIRM_DIALOG,     // Bestätigung anzeigen
+    ERROR_DISPLAY       // Fehler-Meldung
+}
+private UIState currentState = UIState.MENU_NAVIGATION;
+
+@Override
+public void render(TextGraphics graphics) {
+    switch (currentState) {
+        case MENU_NAVIGATION -> drawMenu(graphics);
+        case VALUE_EDITING -> drawValueEditor(graphics);
+        case CONFIRM_DIALOG -> drawConfirmDialog(graphics);
+        case ERROR_DISPLAY -> drawErrorMessage(graphics);
+    }
+}
+
+@Override
+public void handleInput(KeyStroke keyStroke) {
+    switch (currentState) {
+        case MENU_NAVIGATION -> handleMenuInput(keyStroke);
+        case VALUE_EDITING -> handleEditingInput(keyStroke);
+        // ... weitere States
+    }
+}
+```
+
+### 7. Performance & Troubleshooting
+
+#### Performance-Tipps:
+- **Rendering**: Keine schweren Berechnungen in render()
+- **Updates**: Animationen zeitbasiert, nicht frame-basiert
+- **Memory**: Große Objekte einmalig in initialize() erstellen
+- **I/O**: Dateizugriffe nur bei expliziten Aktionen (nicht in update())
+
+#### Häufige Probleme:
+1. **Terminal-Größe**: Mindestens 80x24 für alle UI-Elemente testen
+2. **Farbsupport**: RGB-Farben funktionieren nicht in allen Terminals
+3. **Screen-Registrierung**: Screens müssen in Main.java registriert werden
+4. **Animation-Timing**: super.update() vergessen = Animationen stoppen
+5. **Memory Leaks**: Event-Listener nicht entfernt bei Screen-Wechsel
+
+#### Debugging-Techniken:
+- Kampf-Log für Debug-Nachrichten verwenden
+- Terminal-Größe in render() ausgeben: `size.getColumns() x size.getRows()`
+- Animation-Frame counter für Timing-Debug: `"Frame: " + animationFrame`
+
+### 8. Erweiterte Features
+
+#### Mehrseitige Menüs:
+```java
+private int currentPage = 0;
+private final int itemsPerPage = 5;
+private String[][] menuPages = {
+    {"Option 1", "Option 2", "Option 3", "Option 4", "Option 5"},
+    {"Option 6", "Option 7", "Option 8", "Zurück"}
+};
+```
+
+#### Dialog-System:
+```java
+public void showDialog(String title, String message, Runnable onConfirm) {
+    dialogTitle = title;
+    dialogMessage = message;
+    dialogCallback = onConfirm;
+    currentState = UIState.DIALOG_DISPLAY;
+}
+```
+
+#### Animierte Übergänge:
+```java
+// Slide-In Animation für neuen Content
+private void slideIn(TextGraphics graphics, String text, int targetY) {
+    int currentY = targetY + (animationFrame < 10 ? (10 - animationFrame) : 0);
+    drawCentered(graphics, text, currentY);
+}
+```
+
+---
+
+## Fazit
+
+Dieses GUI-System ist sehr erweiterbar und bietet viele Möglichkeiten für kreative Screens.
+Die wichtigsten Prinzipien sind:
+- Konsistenter Screen-Lebenszyklus
+- State-basierte Logik für komplexe Interaktionen  
+- Performance-bewusste Animation
+- Benutzerfreundliche Navigation mit ESC-Support
+
+Für spezifische Implementierungs-Fragen schauen Sie in die bestehenden Screen-Klassen
+(MainMenuScreen, GameplayScreen) für Beispiele und Patterns.
