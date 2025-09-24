@@ -50,7 +50,7 @@ public enum StoryDatabank {
         this.story = story;
     }
 
-    public static String getStory(StoryDatabank story) {
-        return story.toString();
+    public static String getStory(StoryDatabank storyKey) {
+        return storyKey.story;
     }
 }

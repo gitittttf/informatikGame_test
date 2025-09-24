@@ -8,7 +8,7 @@ target/
 *.iml
 
 # Kompilierte Klassen
-bin/
+target/
 *.class
 
 # Logs
