@@ -6,6 +6,7 @@ import java.util.Queue;
 import com.informatikgame.combat.FightManager;
 import com.informatikgame.entities.Enemy;
 import com.informatikgame.entities.Player;
+import com.informatikgame.ui.StoryDatabank;
 import com.informatikgame.world.EnemyType;
 import com.informatikgame.world.PlayerType;
 import com.informatikgame.world.Room;
@@ -15,7 +16,7 @@ import com.informatikgame.world.World;
 /**
  * GameManager koordiniert zwischen World, Story, Player und FightManager
  */
-public class GameManager {
+public class GameManager implements FightManager.CombatEventListener {
 
     public interface GameEventListener {
 
@@ -38,6 +39,8 @@ public class GameManager {
         void onPlayerAction(String action);
 
         void onWaitingForRoomTransition();
+        
+        void onStoryDisplay(String storyText);
     }
 
     private World world;
@@ -80,6 +83,7 @@ public class GameManager {
         this.player = new Player(PlayerType.SWORD_FIGHTER);
         this.maxPlayerHealth = player.getLifeTotal();  // Maximum hp speichern
         this.fightManager = new FightManager(player);
+        this.fightManager.setCombatEventListener(this);  // Set GameManager as combat listener
 
         // Welt mit vordefinierten Räumen erstellen (erstmal so testweise)
         RoomType[] gameRooms = {
@@ -102,13 +106,15 @@ public class GameManager {
      */
     public void startGame() {
         if (eventListener != null) {
-            // Initiale Events
-            eventListener.onRoomChange(0, world.getRoom_count(), roomNames[0]);
+            // Show story for the initial room first
+            String roomStory = getRoomStory();
+            eventListener.onStoryDisplay(roomStory);
+            // onRoomChange() will be called after story is read in continueAfterStory()
+            
             eventListener.onPlayerHealthChange(player.getLifeTotal(), maxPlayerHealth);
         }
 
-        // Starte mit dem ersten Raum
-        processCurrentRoom();
+        // processCurrentRoom() will be called after story is read
     }
 
     /**
@@ -126,7 +132,7 @@ public class GameManager {
     }
 
     /**
-     * Startet einen Kampf
+     * Startet einen Kampf (GUI Version)
      */
     private void startCombat(Room room) {
         if (eventListener != null) {
@@ -136,20 +142,8 @@ public class GameManager {
 
         notifyLog("Kampf beginnt! " + room.getEnemiesInRoom().length + " Gegner greifen an!");
 
-        // FightManager übernimmt
-        boolean won = fightManager.fight(room.getEnemiesInRoom());
-
-        if (eventListener != null) {
-            eventListener.onCombatEnd(won);
-            eventListener.onPlayerHealthChange(player.getLifeTotal(), 100);
-        }
-
-        if (!won) {
-            gameOver();
-        } else {
-            notifyLog("Kampf gewonnen!");
-            checkForNextRoom();
-        }
+        // Start fight asynchronously - combat will be handled through events
+        fightManager.startFight(room.getEnemiesInRoom());
     }
 
     /**
@@ -239,13 +233,14 @@ public class GameManager {
             world.advance_to_next_room();
 
             if (eventListener != null) {
-                int roomNum = world.getCurrent_room_number();
-                String roomName = roomNames[Math.min(roomNum, roomNames.length - 1)];
-                eventListener.onRoomChange(roomNum, world.getRoom_count(), roomName);
+                // Show the full story before room exploration
+                String roomStory = getRoomStory();
+                eventListener.onStoryDisplay(roomStory);
+                // onRoomChange() will be called after story is read in continueAfterStory()
             }
 
             notifyLog("Du betrittst: " + roomNames[world.getCurrent_room_number()]);
-            processCurrentRoom();
+            // processCurrentRoom() will be called after story is read
         }
     }
 
@@ -303,18 +298,108 @@ public class GameManager {
      * Gibt die aktuelle raumbeschreibung zurück
      */
     public String getRoomDescription() {
-        String[] descriptions = { // beschreibungen
-            "Du stehst im Eingangsbereich eines verlassenen Gebäudes. Die Luft ist stickig.",
-            "Ein langer, dunkler Flur erstreckt sich vor dir. Du hörst seltsame Geräusche.",
-            "Eine alte Bibliothek mit verstaubten Büchern. Etwas bewegt sich in den Schatten.",
-            "Eine kleine Speisekammer mit verfaulten Lebensmitteln. Der Gestank ist überwältigend.",
-            "Ein großer Speisesaal mit umgestürzten Stühlen. Hier fand ein Kampf statt.",
-            "Ein wissenschaftliches Labor mit zerbrochenen Geräten. Chemikalien tropfen vom Tisch.",
-            "Ein schwach beleuchteter Korridor. Du fühlst, dass du beobachtet wirst.",
-            "Die finale Kammer. Hier wartet das Böse, das diesen Ort heimsucht."
+        String[] descriptions = { // kurze beschreibungen für exploration
+            "Ein verlassener Eingangsbereich.",
+            "Ein dunkler Flur.",
+            "Eine alte Bibliothek.",
+            "Eine Speisekammer.",
+            "Ein großer Speisesaal.",
+            "Ein wissenschaftliches Labor.",
+            "Ein schwach beleuchteter Korridor.",
+            "Die finale Kammer."
         };
 
         int index = Math.min(world.getCurrent_room_number(), descriptions.length - 1);
         return descriptions[index];
+    }
+    
+    /**
+     * Gibt die vollständige Story für den aktuellen Raum zurück
+     */
+    public String getRoomStory() {
+        StoryDatabank[] stories = {
+            StoryDatabank.INTRO_ROOM,
+            StoryDatabank.FLOOR_ROOM,
+            StoryDatabank.LIBRARY_ROOM,
+            StoryDatabank.PANTRY_1,
+            StoryDatabank.DINING_HALL,
+            StoryDatabank.LABORATORY,
+            StoryDatabank.CORRIDOR,
+            StoryDatabank.FINAL_ROOM
+        };
+        
+        int index = Math.min(world.getCurrent_room_number(), stories.length - 1);
+        return StoryDatabank.getStory(stories[index]);
+    }
+
+    // === CombatEventListener Implementation ===
+    @Override
+    public void onRoundStart(int roundNumber) {
+        notifyLog("=== Runde " + roundNumber + " ===");
+    }
+
+    @Override
+    public void onCombatMessage(String message) {
+        notifyLog(message);
+    }
+
+    @Override
+    public void onPlayerTurn() {
+        // Notify GUI that it's the player's turn and should show combat input
+        notifyLog("Du bist dran! Wähle deine Aktion.");
+    }
+
+    @Override
+    public void onEnemyTurn(Enemy enemy) {
+        notifyLog(enemy.getType() + " ist dran.");
+    }
+
+    @Override
+    public void onPlayerHealthUpdate(int current, int max) {
+        if (eventListener != null) {
+            eventListener.onPlayerHealthChange(current, max);
+        }
+    }
+
+    @Override
+    public void onEnemyHealthUpdate(Enemy[] enemies) {
+        if (eventListener != null) {
+            eventListener.onEnemyUpdate(enemies);
+        }
+    }
+
+    @Override
+    public void onCombatEnd(boolean playerWon) {
+        if (eventListener != null) {
+            eventListener.onCombatEnd(playerWon);
+        }
+        
+        if (!playerWon) {
+            gameOver();
+        } else {
+            notifyLog("Kampf gewonnen!");
+            checkForNextRoom();
+        }
+    }
+
+    /**
+     * Method for GUI to call when player makes combat action
+     */
+    public void executeCombatAction(int targetEnemyIndex, int finteLevel, int wuchtschlagLevel) {
+        if (fightManager != null && fightManager.isWaitingForPlayerAction()) {
+            fightManager.executePlayerAction(targetEnemyIndex, finteLevel, wuchtschlagLevel);
+        }
+    }
+
+    /**
+     * Method for GUI to call when story reading is finished
+     */
+    public void continueAfterStory() {
+        if (eventListener != null) {
+            int roomNum = world.getCurrent_room_number();
+            String roomName = roomNames[Math.min(roomNum, roomNames.length - 1)];
+            eventListener.onRoomChange(roomNum, world.getRoom_count(), roomName);
+        }
+        processCurrentRoom();
     }
 }

@@ -11,19 +11,12 @@ import com.informatikgame.world.EnemyType;
 public class FightManager {
 
     public interface CombatEventListener {
-
         void onRoundStart(int roundNumber);
-
         void onCombatMessage(String message);
-
         void onPlayerTurn();
-
         void onEnemyTurn(Enemy enemy);
-
         void onPlayerHealthUpdate(int current, int max);
-
         void onEnemyHealthUpdate(Enemy[] enemies);
-
         void onCombatEnd(boolean playerWon);
     }
 
@@ -40,7 +33,7 @@ public class FightManager {
         this.player = player;
         this.waitingForPlayerAction = false;
         this.currentRound = 0;
-        this.playerMaxHP = player.getLifeTotal(); // jetziger hp als max hp
+        this.playerMaxHP = player.getLifeTotal(); // Store initial HP as max
     }
 
     public void setCombatEventListener(CombatEventListener listener) {
@@ -56,7 +49,7 @@ public class FightManager {
 
         this.currentRound = 1;
         this.waitingForPlayerAction = false;
-
+        
         // Notify GUI that combat has started
         if (eventListener != null) {
             eventListener.onCombatMessage("Der Kampf beginnt!");
@@ -92,12 +85,12 @@ public class FightManager {
         if (currentActionQueue.isEmpty()) {
             // Round is finished, clean up dead enemies and start next round
             this.enemiesLeftToRight.removeIf(character -> !character.isAlive());
-
+            
             // Update GUI with current enemy state after removing dead ones
             if (eventListener != null) {
                 eventListener.onEnemyHealthUpdate(enemiesLeftToRight.toArray(new Enemy[0]));
             }
-
+            
             currentRound++;
             startRound();
             return;
@@ -123,17 +116,17 @@ public class FightManager {
             if (eventListener != null) {
                 eventListener.onEnemyTurn(enemy);
             }
-
+            
             // Enemy attacks with random abilities
             int randomNumberFinte = (int) (Math.random() * (enemy.getFinteLevel() + 1));
             int randomNumberWuchtschlag = (int) (Math.random() * (enemy.getWuchtschlagLevel() + 1));
-
+            
             if (eventListener != null) {
                 eventListener.onCombatMessage(enemy.getType() + " greift an!");
             }
-
+            
             enemy.attack(this.player, randomNumberFinte, randomNumberWuchtschlag);
-
+            
             if (eventListener != null) {
                 eventListener.onPlayerHealthUpdate(player.getLifeTotal(), playerMaxHP);
             }
@@ -172,20 +165,16 @@ public class FightManager {
 
         // Execute player attack
         Enemy target = enemiesLeftToRight.get(targetEnemyIndex);
-
+        
         if (eventListener != null) {
             String action = "Angriff auf " + target.getType();
-            if (finteLevel > 0) {
-                action += " (Finte Lv." + finteLevel + ")";
-            }
-            if (wuchtschlagLevel > 0) {
-                action += " (Wuchtschlag Lv." + wuchtschlagLevel + ")";
-            }
+            if (finteLevel > 0) action += " (Finte Lv." + finteLevel + ")";
+            if (wuchtschlagLevel > 0) action += " (Wuchtschlag Lv." + wuchtschlagLevel + ")";
             eventListener.onCombatMessage(action);
         }
-
+        
         player.attack(target, finteLevel, wuchtschlagLevel);
-
+        
         if (eventListener != null) {
             eventListener.onEnemyHealthUpdate(enemiesLeftToRight.toArray(new Enemy[0]));
         }
@@ -204,7 +193,7 @@ public class FightManager {
     // Method that GameManager can call to run the fight (for compatibility)
     public boolean fight(EnemyType[] enemyTypesLeftToRight) {
         startFight(enemyTypesLeftToRight);
-
+        
         // For now, we'll simulate the fight synchronously for compatibility
         // In the future, this should be handled asynchronously through the GUI
         while (player.isAlive() && !enemiesLeftToRight.isEmpty() && !waitingForPlayerAction) {
@@ -217,7 +206,7 @@ public class FightManager {
                 break;
             }
         }
-
+        
         return player.isAlive();
     }
 
