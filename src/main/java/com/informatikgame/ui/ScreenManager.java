@@ -17,7 +17,7 @@ import com.googlecode.lanterna.terminal.Terminal;
 
 /**
  * Zentrale Screen-Verwaltung für das gesamte Spiel. Verwaltet alle Screens und
- * ermöglicht nahtlose Übergänge mit Animationen.
+ * ermöglicht nahtlose Übergänge mit Animationen
  */
 public class ScreenManager {
 
