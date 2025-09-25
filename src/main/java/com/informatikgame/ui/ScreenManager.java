@@ -1,5 +1,6 @@
 package com.informatikgame.ui;
 
+import java.awt.Frame;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,7 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
+import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame;
 
 /**
  * Zentrale Screen-Verwaltung für das gesamte Spiel. Verwaltet alle Screens und
@@ -60,12 +62,27 @@ public class ScreenManager {
         terminalFactory.setForceTextTerminal(false);
         terminalFactory.setPreferTerminalEmulator(false);
 
+        // Die initial terminal size maximieren
+        terminalFactory.setInitialTerminalSize(new TerminalSize(120, 40));
+
         // Erstelle Terminal
         terminal = terminalFactory.createTerminal();
 
-        // Configure terminal for optimal display
-        // Note: In headless environments, Swing customization isn't available
-        // The terminal will use default settings which work fine for console output
+        // Wenn SwingTerminalFrame dann fullscreen konfigurieren
+        if (terminal instanceof SwingTerminalFrame frame) {
+
+            // Fenster anzeigen und maximieren
+            frame.setVisible(true);
+
+            // VOllbildmodus aktivieren
+            frame.setExtendedState(Frame.MAXIMIZED_BOTH);
+
+            // Fenster schließen beendet das Programm
+            frame.setDefaultCloseOperation(3); // WindowConstants.EXIT_ON_CLOSE = 3
+
+            System.out.println("VOllbildmodus aktiviert");
+        }
+
         // Screen erstellen
         screen = new TerminalScreen(terminal);
         screen.startScreen();

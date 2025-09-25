@@ -20,7 +20,7 @@ public abstract class GameScreen {
     }
 
     /**
-     * Wird beim Screen-Wechsel aufgerufen
+     * Wird beim Screenwechsel aufgerufen
      */
     public abstract void initialize();
 
@@ -35,7 +35,7 @@ public abstract class GameScreen {
     public abstract void handleInput(KeyStroke keyStroke);
 
     /**
-     * Update-Methode für Animationen
+     * Update methode für Animationen
      */
     public void update() {
         long currentTime = System.currentTimeMillis();

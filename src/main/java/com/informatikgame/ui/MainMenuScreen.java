@@ -58,7 +58,7 @@ public class MainMenuScreen extends GameScreen {
             symbol = symbols[(int) (Math.random() * symbols.length)];
 
             // Grün-Töne für Matrix-Effekt
-            // TODO: Random farben für die partikel
+            // TODO: Random farben für die partikel testen
             int green = 50 + (int) (Math.random() * 150);
             color = new TextColor.RGB(0, green, 0);
         }
