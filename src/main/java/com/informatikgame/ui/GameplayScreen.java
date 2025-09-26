@@ -232,10 +232,10 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
         graphics.setForegroundColor(statusColor);
         graphics.putString(new TerminalPosition(size.getColumns() / 2 - status.length() / 2, 0), status);
 
-        // HP-Anzeige
+        // Map Shortcutanzeige
         graphics.setForegroundColor(TextColor.ANSI.YELLOW);
-        String hp = String.format("HP: %d/%d", playerHP, playerMaxHP);
-        graphics.putString(new TerminalPosition(size.getColumns() - hp.length() - 2, 0), hp);
+        String mapShortcut = "M - Map";
+        graphics.putString(new TerminalPosition(size.getColumns() - mapShortcut.length() - 2, 0), mapShortcut);
 
         // Trennlinie
         graphics.setForegroundColor(ScreenManager.PRIMARY_COLOR);
@@ -846,7 +846,7 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
             graphics.putString(new TerminalPosition(lineX, storyStartY + i), line);
         }
 
-        // Draw Pokemon-style input prompt at bottom
+        // Draw input prompt at bottom
         drawInputPrompt(graphics);
     }
 
