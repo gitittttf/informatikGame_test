@@ -110,7 +110,6 @@ public class GameManager implements FightManager.CombatEventListener {
     private final Queue<String> inputQueue;
     private boolean waitingForInput;
     private boolean gameRunning;
-    private int maxPlayerHealth = 100;  // Für HP anzeige
 
     private final String[] roomNames = {
         "Eingangsbereich",
@@ -147,7 +146,7 @@ public class GameManager implements FightManager.CombatEventListener {
         // Spieler mit PlayerType erstellen (hier testweise SWORD_FIGHTER)
         // lifeTotal, armourValue, initiative, attack, defense, damage
         this.player = new Player(PlayerType.SWORD_FIGHTER);
-        this.maxPlayerHealth = player.getLifeTotal();  // Maximum hp speichern
+        player.getLifeTotal();
         this.fightManager = new FightManager(player);
         this.fightManager.setCombatEventListener(this);  // Set GameManager as combat listener
 

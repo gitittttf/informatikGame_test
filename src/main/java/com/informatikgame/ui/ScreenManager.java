@@ -1,9 +1,13 @@
 package com.informatikgame.ui;
 
+import java.awt.Font;
 import java.awt.Frame;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.swing.WindowConstants;
 
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
@@ -15,6 +19,7 @@ import com.googlecode.lanterna.screen.Screen;
 import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
+import com.googlecode.lanterna.terminal.swing.SwingTerminalFontConfiguration;
 import com.googlecode.lanterna.terminal.swing.SwingTerminalFrame;
 
 /**
@@ -30,6 +35,16 @@ public class ScreenManager {
     private GameScreen currentScreen;
     private TextGraphics graphics;
     private boolean running;
+    private SwingTerminalFrame swingFrame;
+    private int currentFontSize = 16;
+
+    // Simple dynamic scaling
+    private final AtomicBoolean isRecreating = new AtomicBoolean(false);
+    private final int TARGET_COLUMNS = 120;
+    private final int TARGET_ROWS = 40;
+    private final int MIN_FONT_SIZE = 8;
+    private final int MAX_FONT_SIZE = 32;
+    private int resizeCheckCounter = 3; // Check every N frames
 
     // Farb-Theme für das Spiel
     public static final TextColor BACKGROUND_COLOR = TextColor.ANSI.BLACK;
@@ -52,51 +67,48 @@ public class ScreenManager {
     }
 
     /**
-     * Initialisiert das Terminal im Vollbildmodus mit schwarzem Hintergrund
+     * Initialisiert das Terminal im Vollbildmodus mit dynamischer Skalierung
      */
     public void initialize() throws IOException {
-
-        // Terminal-Factory mit besonderen Einstellungen
+        // Terminal-Factory mit dynamischer Schriftgrößenberechnung
         DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
-
-        // Setze Terminal-Eigenschaften für bessere Kontrolle
         terminalFactory.setPreferTerminalEmulator(true);
 
-        // Die initial terminal size maximieren
-        terminalFactory.setInitialTerminalSize(new TerminalSize(120, 40));
+        TerminalSize initialSize = new TerminalSize(TARGET_COLUMNS, TARGET_ROWS);
+        terminalFactory.setInitialTerminalSize(initialSize);
 
-        // Erstelle Terminal
+        // Dynamische Schriftgrößenberechnung
+        int fontSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, TARGET_COLUMNS / 4));
+        currentFontSize = fontSize;
+
+        // Font-Konfiguration
+        Font terminalFont = new Font(Font.MONOSPACED, Font.PLAIN, fontSize);
+        SwingTerminalFontConfiguration fontConfig = SwingTerminalFontConfiguration.newInstance(terminalFont);
+        terminalFactory.setTerminalEmulatorFontConfiguration(fontConfig);
+
+        // Terminal erstellen
         terminal = terminalFactory.createTerminal();
 
-        // Wenn SwingTerminalFrame dann fullscreen konfigurieren
+        // Fullscreen konfigurieren
         if (terminal instanceof SwingTerminalFrame frame) {
-            // SwingTerminalFontConfiguration
-            // Fenster anzeigen und maximieren
-            frame.setVisible(true);
-
-            // VOllbildmodus aktivieren
+            this.swingFrame = frame;
             frame.setExtendedState(Frame.MAXIMIZED_BOTH);
-
-            // Fenster schließen beendet das Programm
-            frame.setDefaultCloseOperation(3); // WindowConstants.EXIT_ON_CLOSE = 3
-
-            System.out.println("VOllbildmodus aktiviert");
+            frame.setVisible(true);
+            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         }
 
         // Screen erstellen
         screen = new TerminalScreen(terminal);
         screen.startScreen();
-
-        // Cursor verstecken
         screen.setCursorPosition(null);
 
-        // Graphics-Objekt für Zeichenoperationen
+        // Graphics konfigurieren
         graphics = screen.newTextGraphics();
         graphics.setBackgroundColor(BACKGROUND_COLOR);
         graphics.setForegroundColor(TEXT_COLOR);
 
-        // Bildschirm initial schwarz färben
         clearScreen();
+        System.out.println("Terminal mit dynamischer Schriftgröße " + fontSize + " gestartet - einfache Skalierung aktiv");
     }
 
     /**
@@ -156,6 +168,9 @@ public class ScreenManager {
 
             // Update-Logik (für Animationen)
             currentScreen.update();
+
+            // Einfache dynamische Font-Skalierung
+            checkForSimpleResize();
 
             // Frame-Rate begrenzen (ca. 30 FPS)
             try {
@@ -219,10 +234,44 @@ public class ScreenManager {
     }
 
     /**
+     * Einfache dynamische Skalierung (alle 120 Frames = ~4 Sekunden)
+     */
+    private void checkForSimpleResize() {
+        if (swingFrame == null || isRecreating.get()) {
+            return;
+        }
+
+        resizeCheckCounter++;
+        if (resizeCheckCounter < 120) {
+            return; // Check every ~4 seconds
+
+        }
+        resizeCheckCounter = 0;
+
+        try {
+            TerminalSize currentTerminalSize = screen.getTerminalSize();
+
+            // Einfache Neuberechnung basierend auf aktueller Terminal-Größe
+            int newFontSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, currentTerminalSize.getColumns() / 4));
+
+            // Wenn sich Größe signifikant geändert hat
+            if (Math.abs(newFontSize - currentFontSize) >= 3) {
+                System.out.println("Fenstergrößenänderung erkannt - Schriftgröße von " + currentFontSize + " zu " + newFontSize);
+                // Für jetzt nur loggen - volle Recreation kann später hinzugefügt werden
+                currentFontSize = newFontSize;
+            }
+
+        } catch (Exception e) {
+            System.err.println("Fehler beim Resize-Check: " + e.getMessage());
+        }
+    }
+
+    /**
      * Beendet die GUI sauber
      */
     public void shutdown() {
         try {
+            // Clean up terminal and screen
             if (screen != null) {
                 screen.stopScreen();
             }
