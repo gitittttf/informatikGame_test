@@ -6,31 +6,23 @@ import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.input.KeyStroke;
 
-/**
- * Hauptmenü mit animiertem ASCII-Art und Menü-Optionen
- */
-public class MainMenuScreen extends GameScreen {
+public class CharacterSelectionScreen extends GameScreen {
 
     private int selectedOption = 0;
-    private final String[] menuOptions = {
-        "► Neues Spiel starten",
-        "► Spiel fortsetzen",
-        "► Einstellungen",
-        "► Anleitung",
-        "► Credits",
-        "► Spiel beenden"
+    private final String[] characterSelectionOptions = {
+        "► Schwertkrieger",
+        "► Schildkrieger"
     };
 
-    // ASCII-Art als Array für bessere Animation
     private final String[] titleArt = {
-        " ▓█████▄  █    ██  ███▄    █   ▄████ ▓█████  ▒█████   ███▄    █ ",
-        " ▒██▀ ██▌ ██  ▓██▒ ██ ▀█   █  ██▒ ▀█▒▓█   ▀ ▒██▒  ██▒ ██ ▀█   █ ",
-        " ░██   █▌▓██  ▒██░▓██  ▀█ ██▒▒██░▄▄▄░▒███   ▒██░  ██▒▓██  ▀█ ██▒",
-        " ░▓█▄   ▌▓▓█  ░██░▓██▒  ▐▌██▒░▓█  ██▓▒▓█  ▄ ▒██   ██░▓██▒  ▐▌██▒",
-        " ░▒████▓ ▒▒█████▓ ▒██░   ▓██░░▒▓███▀▒░▒████▒░ ████▓▒░▒██░   ▓██░"
+        " ▄████▄   ██░ ██  ▄▄▄       ██▀███   ▄▄▄       ▄████▄  ▄▄▄█████▓▓█████  ██▀███    ██████ ",
+        "▒██▀ ▀█  ▓██░ ██▒▒████▄    ▓██ ▒ ██▒▒████▄    ▒██▀ ▀█  ▓  ██▒ ▓▒▓█   ▀ ▓██ ▒ ██▒▒██    ▒ ",
+        "▒▓█    ▄ ▒██▀▀██░▒██  ▀█▄  ▓██ ░▄█ ▒▒██  ▀█▄  ▒▓█    ▄ ▒ ▓██░ ▒░▒███   ▓██ ░▄█ ▒░ ▓██▄   ",
+        "▒▓▓▄ ▄██▒░▓█ ░██ ░██▄▄▄▄██ ▒██▀▀█▄  ░██▄▄▄▄██ ▒▓▓▄ ▄██▒░ ▓██▓ ░ ▒▓█  ▄ ▒██▀▀█▄    ▒   ██▒",
+        "▒ ▓███▀ ░░▓█▒░██▓ ▓█   ▓██▒░██▓ ▒██▒ ▓█   ▓██▒▒ ▓███▀ ░  ▒██▒ ░ ░▒████▒░██▓ ▒██▒▒██████▒▒"
     };
 
-    private final String subtitle = "Von Paul, Benedikt und Simon";
+    private final String subtitle = "Wähle ein Charakter aus";
 
     // Partikelsystem für Hintergrundanimation
     private Particle[] particles;
@@ -49,16 +41,17 @@ public class MainMenuScreen extends GameScreen {
 
         void reset() {
             TerminalSize size = screenManager.getSize();
+            // Startpositionen
             x = (int) (Math.random() * size.getColumns());
             y = 0;
-            speed = 1 + (int) (Math.random() * 3);
+            // Geschwindigkeit
+            speed = 1 + (int) (Math.random() * 5);
 
-            // Verschiedene Symbole für Atmosphäre
-            char[] symbols = {'░', '▒', '▓', '█', '*', '·', '•'};
+            // Symbole
+            char[] symbols = {'+', '"', '█', '*', '·', '•'};
             symbol = symbols[(int) (Math.random() * symbols.length)];
 
-            // Grün-Töne für Matrix-Effekt
-            // TODO: Random farben für die partikel testen
+            // Farbe
             int green = 50 + (int) (Math.random() * 150);
             color = new TextColor.RGB(0, green, 0);
         }
@@ -78,7 +71,7 @@ public class MainMenuScreen extends GameScreen {
         particles = new Particle[30];
         for (int i = 0; i < particles.length; i++) {
             particles[i] = new Particle();
-            // Verteile initial über den Bildschirm
+            // Verteile über den Bildschirm
             particles[i].y = (int) (Math.random() * screenManager.getSize().getRows());
         }
     }
@@ -122,7 +115,7 @@ public class MainMenuScreen extends GameScreen {
         // Menü Box
         int menuY = titleY + titleArt.length + 5;
         int menuWidth = 40;
-        int menuHeight = menuOptions.length + 4;
+        int menuHeight = characterSelectionOptions.length + 4;
         int menuX = (size.getColumns() - menuWidth) / 2;
 
         // Box mit animiertem Rahmen
@@ -132,9 +125,9 @@ public class MainMenuScreen extends GameScreen {
                 borderColor, ScreenManager.BACKGROUND_COLOR);
 
         // Menü Optionen
-        for (int i = 0; i < menuOptions.length; i++) {
+        for (int i = 0; i < characterSelectionOptions.length; i++) {
             int optionY = menuY + 2 + i;
-            String option = menuOptions[i];
+            String option = characterSelectionOptions[i];
 
             if (i == selectedOption) {
                 // Ausgewählte Option ist animiert und hervorgehoben
@@ -165,9 +158,9 @@ public class MainMenuScreen extends GameScreen {
         if (null != keyStroke.getKeyType()) {
             switch (keyStroke.getKeyType()) {
                 case ArrowUp ->
-                    selectedOption = (selectedOption - 1 + menuOptions.length) % menuOptions.length;
+                    selectedOption = (selectedOption - 1 + characterSelectionOptions.length) % characterSelectionOptions.length;
                 case ArrowDown ->
-                    selectedOption = (selectedOption + 1) % menuOptions.length;
+                    selectedOption = (selectedOption + 1) % characterSelectionOptions.length;
                 case Enter ->
                     executeOption();
                 default -> {
@@ -176,23 +169,19 @@ public class MainMenuScreen extends GameScreen {
         }
     }
 
+    // TODO: FALSCHE OPTIONEN, character selection implementieren
     private void executeOption() {
         switch (selectedOption) {
             case 0 -> // Neues Spiel
                 screenManager.switchToScreen("game");
-            case 1 -> {
+            case 1 -> { // Sword
             }
             case 2 -> // Einstellungen
                 screenManager.switchToScreen("settings");
-            case 3 -> // Anleitung
-                screenManager.switchToScreen("help");
-            case 4 -> // Credits
-                screenManager.switchToScreen("credits");
             case 5 -> // Beenden
                 screenManager.stopRunning();
         }
-        // Fortsetzen
-        // TODO: Lade Spielstand
+        // 
     }
 
     @Override
@@ -207,7 +196,6 @@ public class MainMenuScreen extends GameScreen {
 
     @Override
     public boolean onEscape() {
-        // Im Hauptmenü: ESC beendet das Spiel
         return selectedOption == 5; // Nur wenn "Beenden" ausgewählt
     }
 }
