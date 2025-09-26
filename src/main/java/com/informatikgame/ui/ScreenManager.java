@@ -1,14 +1,28 @@
 package com.informatikgame.ui;
 
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import com.googlecode.lanterna.TerminalPosition;
@@ -61,6 +75,31 @@ public class ScreenManager {
 
     private DisplayMode currentDisplayMode = DisplayMode.FULLSCREEN;
     private ScalingMode currentScalingMode = ScalingMode.NORMAL;
+    private String selectedDisplayId = null; // null means default display
+    private JFrame customFrame;
+
+    // Display information class
+    public static class DisplayInfo {
+
+        public final String id;
+        public final String name;
+        public final Rectangle bounds;
+        public final Dimension resolution;
+        public final boolean primary;
+
+        public DisplayInfo(String id, String name, Rectangle bounds, Dimension resolution, boolean primary) {
+            this.id = id;
+            this.name = name;
+            this.bounds = bounds;
+            this.resolution = resolution;
+            this.primary = primary;
+        }
+
+        @Override
+        public String toString() {
+            return name + " (" + resolution.width + "x" + resolution.height + ")" + (primary ? " [Primary]" : "");
+        }
+    }
 
     // Simple dynamic scaling
     private final AtomicBoolean isRecreating = new AtomicBoolean(false);
@@ -91,6 +130,105 @@ public class ScreenManager {
     }
 
     /**
+     * Get all available displays
+     */
+    public List<DisplayInfo> getAvailableDisplays() {
+        List<DisplayInfo> displays = new ArrayList<>();
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice[] devices = ge.getScreenDevices();
+        GraphicsDevice defaultDevice = ge.getDefaultScreenDevice();
+
+        for (int i = 0; i < devices.length; i++) {
+            GraphicsDevice device = devices[i];
+            GraphicsConfiguration config = device.getDefaultConfiguration();
+            Rectangle bounds = config.getBounds();
+            Dimension resolution = new Dimension(device.getDisplayMode().getWidth(), device.getDisplayMode().getHeight());
+            boolean isPrimary = device.equals(defaultDevice);
+
+            String id = device.getIDstring();
+            String name = "Monitor " + (i + 1);
+
+            displays.add(new DisplayInfo(id, name, bounds, resolution, isPrimary));
+        }
+
+        return displays;
+    }
+
+    /**
+     * Set the selected display for fullscreen mode
+     */
+    public void setSelectedDisplay(String displayId) {
+        this.selectedDisplayId = displayId;
+    }
+
+    /**
+     * Get the currently selected display ID
+     */
+    public String getSelectedDisplayId() {
+        return selectedDisplayId;
+    }
+
+    /**
+     * Find graphics device by ID or return default
+     */
+    private GraphicsDevice findDeviceByIdOrDefault(String displayId) {
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+
+        if (displayId != null) {
+            for (GraphicsDevice device : ge.getScreenDevices()) {
+                if (device.getIDstring().equals(displayId)) {
+                    return device;
+                }
+            }
+        }
+
+        return ge.getDefaultScreenDevice();
+    }
+
+    /**
+     * Compute the best font size using binary search with FontMetrics
+     */
+    private int computeBestFontSize(GraphicsDevice device, int targetColumns, int targetRows) {
+        Dimension resolution = new Dimension(device.getDisplayMode().getWidth(), device.getDisplayMode().getHeight());
+
+        int minFontSize = MIN_FONT_SIZE;
+        int maxFontSize = MAX_FONT_SIZE;
+        int bestFontSize = minFontSize;
+
+        // Binary search for the largest font size that fits
+        while (minFontSize <= maxFontSize) {
+            int midFontSize = (minFontSize + maxFontSize) / 2;
+
+            // Create a temporary font to measure
+            Font testFont = new Font(Font.MONOSPACED, Font.PLAIN, midFontSize);
+
+            // Use a BufferedImage to get FontMetrics
+            BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+            Graphics g = img.getGraphics();
+            FontMetrics fm = g.getFontMetrics(testFont);
+
+            // Calculate required dimensions
+            int charWidth = fm.charWidth('M'); // Use 'M' as it's typically the widest character
+            int charHeight = fm.getHeight();
+
+            int requiredWidth = targetColumns * charWidth;
+            int requiredHeight = targetRows * charHeight;
+
+            g.dispose();
+
+            // Check if this font size fits
+            if (requiredWidth <= resolution.width && requiredHeight <= resolution.height) {
+                bestFontSize = midFontSize;
+                minFontSize = midFontSize + 1;
+            } else {
+                maxFontSize = midFontSize - 1;
+            }
+        }
+
+        return bestFontSize;
+    }
+
+    /**
      * Initialisiert das Terminal im echten Vollbildmodus mit korrekter
      * Skalierung
      */
@@ -102,18 +240,15 @@ public class ScreenManager {
      * Initialisiert das Terminal mit den gegebenen Display-Einstellungen
      */
     private void initializeWithSettings(DisplayMode displayMode, ScalingMode scalingMode) throws IOException {
-        // Get screen dimensions
-        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-        int screenWidth = gd.getDisplayMode().getWidth();
-        int screenHeight = gd.getDisplayMode().getHeight();
+        // Get the selected graphics device
+        GraphicsDevice gd = findDeviceByIdOrDefault(selectedDisplayId);
+        Dimension resolution = new Dimension(gd.getDisplayMode().getWidth(), gd.getDisplayMode().getHeight());
 
-        // Calculate base font size for the target grid
-        int baseFontWidthSize = (screenWidth - 100) / TARGET_COLUMNS;
-        int baseFontHeightSize = (screenHeight - 150) / TARGET_ROWS;
-        int baseFontSize = Math.min(baseFontWidthSize, baseFontHeightSize);
+        // Compute optimal font size using binary search
+        int fontSize = computeBestFontSize(gd, TARGET_COLUMNS, TARGET_ROWS);
 
         // Apply scaling factor
-        int fontSize = (int) (baseFontSize * scalingMode.getScaleFactor());
+        fontSize = (int) (fontSize * scalingMode.getScaleFactor());
         fontSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, fontSize));
         currentFontSize = fontSize;
 
@@ -132,21 +267,15 @@ public class ScreenManager {
         // Terminal erstellen
         terminal = terminalFactory.createTerminal();
 
-        // Configure frame based on display mode
-        if (terminal instanceof SwingTerminalFrame frame) {
-            this.swingFrame = frame;
-            frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-
-            // Dispose first to allow setUndecorated
-            frame.dispose();
+        // Configure frame based on display mode with letterboxing
+        if (terminal instanceof SwingTerminalFrame originalFrame) {
+            this.swingFrame = originalFrame;
 
             if (displayMode == DisplayMode.FULLSCREEN) {
-                configureFullscreenMode(frame, gd, screenWidth, screenHeight, fontSize);
+                configureFullscreenModeWithLetterboxing(originalFrame, gd, fontSize);
             } else {
-                configureWindowedMode(frame, screenWidth, screenHeight, fontSize, scalingMode);
+                configureWindowedModeWithLetterboxing(originalFrame, gd, fontSize, scalingMode);
             }
-
-            frame.setVisible(true);
         }
 
         // Screen erstellen
@@ -164,49 +293,154 @@ public class ScreenManager {
     }
 
     /**
-     * Konfiguriert Vollbildmodus
+     * Configure fullscreen mode with proper letterboxing and centering
      */
-    private void configureFullscreenMode(SwingTerminalFrame frame, GraphicsDevice gd,
-            int screenWidth, int screenHeight, int fontSize) {
-        frame.setUndecorated(true);
-        frame.setResizable(false);
+    private void configureFullscreenModeWithLetterboxing(SwingTerminalFrame originalFrame, GraphicsDevice gd, int fontSize) {
+        // Create custom frame for letterboxing with selected device's configuration
+        customFrame = new JFrame(gd.getDefaultConfiguration());
+        customFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        customFrame.setUndecorated(true);
+        customFrame.setResizable(false);
+        // Set black background  
+        customFrame.getContentPane().setBackground(java.awt.Color.BLACK);
+        customFrame.setLayout(new GridBagLayout());
 
+        // Calculate terminal component size
+        Font terminalFont = new Font(Font.MONOSPACED, Font.PLAIN, fontSize);
+        BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        Graphics g = img.getGraphics();
+        FontMetrics fm = g.getFontMetrics(terminalFont);
+
+        int charWidth = fm.charWidth('M');
+        int charHeight = fm.getHeight();
+        int terminalWidth = TARGET_COLUMNS * charWidth;
+        int terminalHeight = TARGET_ROWS * charHeight;
+        g.dispose();
+
+        // Remove the original frame's content and add to our custom frame
+        originalFrame.setVisible(false);
+
+        // Safely extract terminal component
+        java.awt.Component terminalComponent = null;
+        if (originalFrame.getContentPane().getComponentCount() > 0) {
+            terminalComponent = originalFrame.getContentPane().getComponent(0);
+            originalFrame.getContentPane().remove(terminalComponent);
+        } else {
+            throw new RuntimeException("No terminal component found in original frame");
+        }
+
+        // Set both preferred and exact size for the terminal component
+        terminalComponent.setPreferredSize(new Dimension(terminalWidth, terminalHeight));
+        terminalComponent.setSize(new Dimension(terminalWidth, terminalHeight));
+
+        // Create a panel with black background for letterboxing
+        JPanel letterboxPanel = new JPanel(new GridBagLayout());
+        letterboxPanel.setBackground(Color.BLACK);
+
+        // Add terminal component to letterbox panel with proper centering
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.fill = GridBagConstraints.NONE;  // Don't stretch the component
+        gbc.weightx = 1.0;  // Take all horizontal space
+        gbc.weighty = 1.0;  // Take all vertical space
+        letterboxPanel.add(terminalComponent, gbc);
+
+        // Add the letterbox panel to the custom frame with GridBagLayout
+        GridBagConstraints frameGbc = new GridBagConstraints();
+        frameGbc.gridx = 0;
+        frameGbc.gridy = 0;
+        frameGbc.fill = GridBagConstraints.BOTH;
+        frameGbc.weightx = 1.0;
+        frameGbc.weighty = 1.0;
+        customFrame.add(letterboxPanel, frameGbc);
+
+        // Ensure terminal component can receive focus and input
+        terminalComponent.setFocusable(true);
+        terminalComponent.requestFocusInWindow();
+
+        // Try exclusive fullscreen first
         if (gd.isFullScreenSupported()) {
             try {
-                gd.setFullScreenWindow(frame);
-                System.out.println("Vollbildmodus aktiviert - " + screenWidth + "x" + screenHeight + ", Font: " + fontSize);
+                gd.setFullScreenWindow(customFrame);
+                System.out.println("Exclusive fullscreen activated on " + gd.getIDstring()
+                        + " - Resolution: " + gd.getDisplayMode().getWidth() + "x" + gd.getDisplayMode().getHeight()
+                        + ", Font: " + fontSize + ", Game: " + terminalWidth + "x" + terminalHeight
+                        + ", Display: " + (selectedDisplayId != null ? selectedDisplayId : "Default"));
             } catch (Exception e) {
-                System.out.println("Vollbildmodus fehlgeschlagen: " + e.getMessage() + ", verwende maximiert");
-                frame.setExtendedState(Frame.MAXIMIZED_BOTH);
+                System.out.println("Exclusive fullscreen failed: " + e.getMessage() + ", using borderless window");
+                configureBorderlessWindow(gd);
             }
         } else {
-            System.out.println("Vollbildmodus nicht unterstützt, verwende maximiert - Font: " + fontSize);
-            frame.setExtendedState(Frame.MAXIMIZED_BOTH);
+            System.out.println("Exclusive fullscreen not supported, using borderless window");
+            configureBorderlessWindow(gd);
         }
+
+        // Set visible first, then request focus
+        customFrame.setVisible(true);
+
+        // Ensure the terminal gets focus for input handling
+        final java.awt.Component finalTerminalComponent = terminalComponent;
+        SwingUtilities.invokeLater(() -> {
+            finalTerminalComponent.requestFocusInWindow();
+        });
+
+        // Don't dispose the original frame immediately - wait a bit
+        final SwingTerminalFrame frameToDispose = originalFrame;
+        SwingUtilities.invokeLater(() -> {
+            try {
+                Thread.sleep(100); // Give time for focus transfer
+                frameToDispose.dispose();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
     }
 
     /**
-     * Konfiguriert Fenstermodus mit zentriertem Spiel und Letterboxing
+     * Configure borderless window that covers the selected monitor
      */
-    private void configureWindowedMode(SwingTerminalFrame frame, int screenWidth, int screenHeight,
-            int fontSize, ScalingMode scalingMode) {
+    private void configureBorderlessWindow(GraphicsDevice gd) {
+        Rectangle bounds = gd.getDefaultConfiguration().getBounds();
+        customFrame.setBounds(bounds);
+        customFrame.setExtendedState(Frame.NORMAL); // Ensure not maximized, use explicit bounds
+    }
+
+    /**
+     * Configure windowed mode with proper sizing and centering
+     */
+    private void configureWindowedModeWithLetterboxing(SwingTerminalFrame frame, GraphicsDevice gd, int fontSize, ScalingMode scalingMode) {
         frame.setUndecorated(false); // Decorated window for windowed mode
         frame.setResizable(true);    // Allow resizing in windowed mode
 
-        // Calculate window size based on font size and target grid
-        int gameWidth = (int) (TARGET_COLUMNS * fontSize * 0.6); // Approximate character width
-        int gameHeight = (int) (TARGET_ROWS * fontSize * 1.2);   // Approximate character height
+        // Calculate accurate window size using FontMetrics
+        Font terminalFont = new Font(Font.MONOSPACED, Font.PLAIN, fontSize);
+        BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        Graphics g = img.getGraphics();
+        FontMetrics fm = g.getFontMetrics(terminalFont);
 
-        // Add some padding
+        int charWidth = fm.charWidth('M');
+        int charHeight = fm.getHeight();
+        int gameWidth = TARGET_COLUMNS * charWidth;
+        int gameHeight = TARGET_ROWS * charHeight;
+        g.dispose();
+
+        // Add padding for window decorations
         int windowWidth = gameWidth + 50;
         int windowHeight = gameHeight + 100;
 
-        // Center window on screen
-        int windowX = (screenWidth - windowWidth) / 2;
-        int windowY = (screenHeight - windowHeight) / 2;
+        // Center window on the selected monitor
+        Rectangle bounds = gd.getDefaultConfiguration().getBounds();
+        int windowX = bounds.x + (bounds.width - windowWidth) / 2;
+        int windowY = bounds.y + (bounds.height - windowHeight) / 2;
 
         frame.setBounds(windowX, windowY, windowWidth, windowHeight);
-        System.out.println("Fenstermodus aktiviert - Größe: " + windowWidth + "x" + windowHeight + ", Font: " + fontSize);
+        frame.setVisible(true);
+
+        System.out.println("Windowed mode activated on " + gd.getIDstring()
+                + " - Window: " + windowWidth + "x" + windowHeight + ", Font: " + fontSize
+                + ", Game: " + gameWidth + "x" + gameHeight);
     }
 
     /**
@@ -221,9 +455,16 @@ public class ScreenManager {
     }
 
     /**
-     * Wendet neue Display-Einstellungen an und startet das Terminal neu
+     * Apply new display settings with optional display selection
      */
     public void applyDisplaySettings(Object displayMode, Object scalingMode) {
+        applyDisplaySettings(displayMode, scalingMode, selectedDisplayId);
+    }
+
+    /**
+     * Apply new display settings including display selection
+     */
+    public void applyDisplaySettings(Object displayMode, Object scalingMode, String displayId) {
         try {
             // Convert from SettingsScreen enums to ScreenManager enums
             DisplayMode newDisplayMode = DisplayMode.valueOf(displayMode.toString());
@@ -232,6 +473,7 @@ public class ScreenManager {
             // Store new settings
             currentDisplayMode = newDisplayMode;
             currentScalingMode = newScalingMode;
+            selectedDisplayId = displayId;
 
             // Shutdown current terminal
             shutdownTerminal();
@@ -239,23 +481,34 @@ public class ScreenManager {
             // Reinitialize with new settings
             initializeWithSettings(newDisplayMode, newScalingMode);
 
-            System.out.println("Einstellungen angewendet - Modus: " + newDisplayMode + ", Skalierung: " + newScalingMode);
+            System.out.println("Display settings applied - Mode: " + newDisplayMode
+                    + ", Scaling: " + newScalingMode + ", Display: "
+                    + (displayId != null ? displayId : "Default"));
 
         } catch (Exception e) {
-            System.err.println("Fehler beim Anwenden der Einstellungen: " + e.getMessage());
+            System.err.println("Error applying display settings: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     /**
-     * Beendet nur das Terminal (ohne die Anwendung zu beenden)
+     * Shutdown only the terminal (without ending the application)
      */
     private void shutdownTerminal() {
         try {
-            // Exit fullscreen mode first
-            GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-            if (gd.getFullScreenWindow() != null) {
-                gd.setFullScreenWindow(null);
+            // Exit fullscreen mode first from all devices
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            for (GraphicsDevice device : ge.getScreenDevices()) {
+                if (device.getFullScreenWindow() != null) {
+                    device.setFullScreenWindow(null);
+                }
+            }
+
+            // Clean up custom frame
+            if (customFrame != null) {
+                customFrame.setVisible(false);
+                customFrame.dispose();
+                customFrame = null;
             }
 
             // Clean up terminal and screen
@@ -265,8 +518,12 @@ public class ScreenManager {
             if (terminal != null) {
                 terminal.close();
             }
+            if (swingFrame != null) {
+                swingFrame.setVisible(false);
+                swingFrame.dispose();
+            }
         } catch (Exception e) {
-            System.err.println("Fehler beim Beenden des Terminals: " + e.getMessage());
+            System.err.println("Error shutting down terminal: " + e.getMessage());
         }
     }
 
@@ -403,7 +660,7 @@ public class ScreenManager {
     }
 
     /**
-     * Beendet die GUI sauber
+     * Shutdown the GUI cleanly
      */
     public void shutdown() {
         shutdownTerminal();

@@ -1,5 +1,7 @@
 package com.informatikgame.ui;
 
+import java.util.List;
+
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
@@ -31,15 +33,22 @@ public class SettingsScreen extends GameScreen {
     // Current settings
     private ScreenManager.DisplayMode currentDisplayMode = ScreenManager.DisplayMode.FULLSCREEN;
     private ScreenManager.ScalingMode currentScalingMode = ScreenManager.ScalingMode.NORMAL;
+    private String currentSelectedDisplayId = null;
 
     // Pending settings (changed but not applied)
     private ScreenManager.DisplayMode pendingDisplayMode = ScreenManager.DisplayMode.FULLSCREEN;
     private ScreenManager.ScalingMode pendingScalingMode = ScreenManager.ScalingMode.NORMAL;
+    private String pendingSelectedDisplayId = null;
+
+    // Available displays
+    private List<ScreenManager.DisplayInfo> availableDisplays;
+    private int selectedDisplayIndex = 0;
 
     // UI state
     private int selectedOption = 0;
     private final String[] settingLabels = {
         "Display Modus:",
+        "Monitor Auswahl:",
         "Vollbild Skalierung:",
         "< Zurück zum Hauptmenü"
     };
@@ -53,10 +62,26 @@ public class SettingsScreen extends GameScreen {
         currentDisplayMode = screenManager.isFullscreenMode()
                 ? ScreenManager.DisplayMode.FULLSCREEN : ScreenManager.DisplayMode.WINDOWED;
         currentScalingMode = screenManager.getCurrentScalingMode();
+        currentSelectedDisplayId = screenManager.getSelectedDisplayId();
+
+        // Get available displays
+        availableDisplays = screenManager.getAvailableDisplays();
+
+        // Find current display index
+        selectedDisplayIndex = 0;
+        if (currentSelectedDisplayId != null) {
+            for (int i = 0; i < availableDisplays.size(); i++) {
+                if (availableDisplays.get(i).id.equals(currentSelectedDisplayId)) {
+                    selectedDisplayIndex = i;
+                    break;
+                }
+            }
+        }
 
         // Initialize pending settings to current values
         pendingDisplayMode = currentDisplayMode;
         pendingScalingMode = currentScalingMode;
+        pendingSelectedDisplayId = currentSelectedDisplayId;
         hasChanges = false;
         showApplyButton = false;
     }
@@ -74,10 +99,10 @@ public class SettingsScreen extends GameScreen {
         drawCentered(graphics, "║            EINSTELLUNGEN             ║", 4);
         drawCentered(graphics, "╚══════════════════════════════════════╝", 5);
 
-        // Settings box
+        // Settings box (bigger to accommodate display selection)
         int boxY = 8;
-        int boxWidth = 50;
-        int boxHeight = 12;
+        int boxWidth = 60;
+        int boxHeight = 16;
         int boxX = (size.getColumns() - boxWidth) / 2;
 
         drawBox(graphics, boxX, boxY, boxWidth, boxHeight,
@@ -85,19 +110,24 @@ public class SettingsScreen extends GameScreen {
 
         // Settings content
         int contentY = boxY + 2;
+        int currentSetting = 0;
 
         // Display Mode setting
-        renderDisplayModeSetting(graphics, boxX, contentY, 0);
+        renderDisplayModeSetting(graphics, boxX, contentY, currentSetting++);
 
-        // Scaling setting (only show if fullscreen is pending)
+        // Display selection and scaling (only show if fullscreen is pending)
         if (pendingDisplayMode == ScreenManager.DisplayMode.FULLSCREEN) {
-            renderScalingSetting(graphics, boxX, contentY + 2, 1);
+            // Display selection
+            renderDisplaySelectionSetting(graphics, boxX, contentY + 2, currentSetting++);
+
+            // Scaling setting
+            renderScalingSetting(graphics, boxX, contentY + 4, currentSetting++);
 
             // Back option
-            renderBackOption(graphics, boxX, contentY + 4, 2);
+            renderBackOption(graphics, boxX, contentY + 6, currentSetting);
         } else {
-            // Back option (higher up when scaling is hidden)
-            renderBackOption(graphics, boxX, contentY + 2, 1);
+            // Back option (higher up when display selection and scaling are hidden)
+            renderBackOption(graphics, boxX, contentY + 2, currentSetting);
         }
 
         // Apply button (bottom right)
@@ -143,7 +173,41 @@ public class SettingsScreen extends GameScreen {
         // Show if this setting has changed
         if (pendingDisplayMode != currentDisplayMode) {
             graphics.setForegroundColor(new TextColor.RGB(255, 150, 0));
-            graphics.putString(new TerminalPosition(boxX + 45, y), "*");
+            graphics.putString(new TerminalPosition(boxX + 55, y), "*");
+        }
+    }
+
+    private void renderDisplaySelectionSetting(TextGraphics graphics, int boxX, int y, int index) {
+        boolean selected = (selectedOption == index);
+
+        graphics.setBackgroundColor(selected ? new TextColor.RGB(0, 30, 0) : ScreenManager.BACKGROUND_COLOR);
+        graphics.setForegroundColor(selected ? TextColor.ANSI.YELLOW : ScreenManager.TEXT_COLOR);
+
+        String label = settingLabels[index];
+        graphics.putString(new TerminalPosition(boxX + 2, y), label);
+
+        // Current display name
+        String displayName = "Standard";
+        if (!availableDisplays.isEmpty() && selectedDisplayIndex < availableDisplays.size()) {
+            displayName = availableDisplays.get(selectedDisplayIndex).toString();
+        }
+
+        // Truncate if too long
+        if (displayName.length() > 25) {
+            displayName = displayName.substring(0, 22) + "...";
+        }
+
+        String valueDisplay = "< " + displayName + " >";
+        graphics.setForegroundColor(selected ? TextColor.ANSI.CYAN : ScreenManager.SECONDARY_COLOR);
+        graphics.putString(new TerminalPosition(boxX + 25, y), valueDisplay);
+
+        // Show if this setting has changed
+        String currentDisplayId = (selectedDisplayIndex < availableDisplays.size())
+                ? availableDisplays.get(selectedDisplayIndex).id : null;
+        boolean displayChanged = !java.util.Objects.equals(currentDisplayId, currentSelectedDisplayId);
+        if (displayChanged) {
+            graphics.setForegroundColor(new TextColor.RGB(255, 150, 0));
+            graphics.putString(new TerminalPosition(boxX + 55, y), "*");
         }
     }
 
@@ -164,7 +228,7 @@ public class SettingsScreen extends GameScreen {
         // Show if this setting has changed
         if (pendingScalingMode != currentScalingMode) {
             graphics.setForegroundColor(new TextColor.RGB(255, 150, 0));
-            graphics.putString(new TerminalPosition(boxX + 45, y), "*");
+            graphics.putString(new TerminalPosition(boxX + 55, y), "*");
         }
     }
 
@@ -174,7 +238,7 @@ public class SettingsScreen extends GameScreen {
         graphics.setBackgroundColor(selected ? new TextColor.RGB(0, 30, 0) : ScreenManager.BACKGROUND_COLOR);
         graphics.setForegroundColor(selected ? TextColor.ANSI.YELLOW : ScreenManager.TEXT_COLOR);
 
-        graphics.putString(new TerminalPosition(boxX + 2, y), settingLabels[2]);
+        graphics.putString(new TerminalPosition(boxX + 2, y), settingLabels[3]);
     }
 
     private void renderBackgroundEffect(TextGraphics graphics, TerminalSize size) {
@@ -194,11 +258,11 @@ public class SettingsScreen extends GameScreen {
         if (keyStroke.getKeyType() != null) {
             switch (keyStroke.getKeyType()) {
                 case ArrowUp -> {
-                    int maxOption = (pendingDisplayMode == ScreenManager.DisplayMode.FULLSCREEN) ? 2 : 1;
+                    int maxOption = (pendingDisplayMode == ScreenManager.DisplayMode.FULLSCREEN) ? 3 : 1;
                     selectedOption = (selectedOption - 1 + (maxOption + 1)) % (maxOption + 1);
                 }
                 case ArrowDown -> {
-                    int maxOption = (pendingDisplayMode == ScreenManager.DisplayMode.FULLSCREEN) ? 2 : 1;
+                    int maxOption = (pendingDisplayMode == ScreenManager.DisplayMode.FULLSCREEN) ? 3 : 1;
                     selectedOption = (selectedOption + 1) % (maxOption + 1);
                 }
                 case ArrowLeft ->
@@ -228,7 +292,14 @@ public class SettingsScreen extends GameScreen {
                         ? ScreenManager.DisplayMode.WINDOWED : ScreenManager.DisplayMode.FULLSCREEN;
                 checkForChanges();
             }
-            case 1 -> { // Scaling (only if fullscreen)
+            case 1 -> { // Display Selection (only if fullscreen)
+                if (pendingDisplayMode == ScreenManager.DisplayMode.FULLSCREEN && !availableDisplays.isEmpty()) {
+                    selectedDisplayIndex = (selectedDisplayIndex - 1 + availableDisplays.size()) % availableDisplays.size();
+                    pendingSelectedDisplayId = availableDisplays.get(selectedDisplayIndex).id;
+                    checkForChanges();
+                }
+            }
+            case 2 -> { // Scaling (only if fullscreen)
                 if (pendingDisplayMode == ScreenManager.DisplayMode.FULLSCREEN) {
                     ScreenManager.ScalingMode[] modes = ScreenManager.ScalingMode.values();
                     int currentIndex = pendingScalingMode.ordinal();
@@ -246,7 +317,14 @@ public class SettingsScreen extends GameScreen {
                         ? ScreenManager.DisplayMode.WINDOWED : ScreenManager.DisplayMode.FULLSCREEN;
                 checkForChanges();
             }
-            case 1 -> { // Scaling (only if fullscreen)
+            case 1 -> { // Display Selection (only if fullscreen)
+                if (pendingDisplayMode == ScreenManager.DisplayMode.FULLSCREEN && !availableDisplays.isEmpty()) {
+                    selectedDisplayIndex = (selectedDisplayIndex + 1) % availableDisplays.size();
+                    pendingSelectedDisplayId = availableDisplays.get(selectedDisplayIndex).id;
+                    checkForChanges();
+                }
+            }
+            case 2 -> { // Scaling (only if fullscreen)
                 if (pendingDisplayMode == ScreenManager.DisplayMode.FULLSCREEN) {
                     ScreenManager.ScalingMode[] modes = ScreenManager.ScalingMode.values();
                     int currentIndex = pendingScalingMode.ordinal();
@@ -258,7 +336,7 @@ public class SettingsScreen extends GameScreen {
     }
 
     private void executeSelectedOption() {
-        int maxOption = (pendingDisplayMode == ScreenManager.DisplayMode.FULLSCREEN) ? 2 : 1;
+        int maxOption = (pendingDisplayMode == ScreenManager.DisplayMode.FULLSCREEN) ? 3 : 1;
 
         if (selectedOption == maxOption) { // Back option
             if (hasChanges) {
@@ -270,7 +348,8 @@ public class SettingsScreen extends GameScreen {
 
     private void checkForChanges() {
         hasChanges = (pendingDisplayMode != currentDisplayMode)
-                || (pendingScalingMode != currentScalingMode);
+                || (pendingScalingMode != currentScalingMode)
+                || !java.util.Objects.equals(pendingSelectedDisplayId, currentSelectedDisplayId);
         showApplyButton = hasChanges;
     }
 
@@ -279,12 +358,13 @@ public class SettingsScreen extends GameScreen {
             return;
         }
 
-        // Apply settings to ScreenManager
-        screenManager.applyDisplaySettings(pendingDisplayMode, pendingScalingMode);
+        // Apply settings to ScreenManager including display selection
+        screenManager.applyDisplaySettings(pendingDisplayMode, pendingScalingMode, pendingSelectedDisplayId);
 
         // Update current settings
         currentDisplayMode = pendingDisplayMode;
         currentScalingMode = pendingScalingMode;
+        currentSelectedDisplayId = pendingSelectedDisplayId;
         hasChanges = false;
         showApplyButton = false;
     }
@@ -295,6 +375,18 @@ public class SettingsScreen extends GameScreen {
             // Reset pending changes
             pendingDisplayMode = currentDisplayMode;
             pendingScalingMode = currentScalingMode;
+            pendingSelectedDisplayId = currentSelectedDisplayId;
+
+            // Reset display index
+            if (currentSelectedDisplayId != null && !availableDisplays.isEmpty()) {
+                for (int i = 0; i < availableDisplays.size(); i++) {
+                    if (availableDisplays.get(i).id.equals(currentSelectedDisplayId)) {
+                        selectedDisplayIndex = i;
+                        break;
+                    }
+                }
+            }
+
             checkForChanges();
             return false;
         } else {
