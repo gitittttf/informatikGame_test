@@ -7,6 +7,7 @@ import com.informatikgame.world.UpgradeType;
 public class Character {
 
     protected int lifeTotal;
+    protected int maxLife;
     protected int armourValue;
     protected int initiative;
     protected int attack;
@@ -20,6 +21,7 @@ public class Character {
     // Constructor
     public Character(int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage, int numW6, int finteLevel, int wuchtschlagLevel, String type) {
         this.lifeTotal = lifeTotal;
+        this.maxLife = lifeTotal;
         this.armourValue = armourValue;
         this.initiative = initiative;
         this.attack = attack;
@@ -71,8 +73,9 @@ public class Character {
     }
 
     //Upgrade Character
-    public void upgrade(int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage, int finteLevel, int wuchtschlagLevel) {
+    public void upgrade(int lifeTotal, int maxLife, int armourValue, int initiative, int attack, int defense, int damage, int finteLevel, int wuchtschlagLevel) {
         this.lifeTotal += lifeTotal;
+        this.maxLife += maxLife;
         this.armourValue += armourValue;
         this.initiative += initiative;
         this.attack += attack;
@@ -84,7 +87,7 @@ public class Character {
 
     //Upgrade Character with Upgrade Type
     public void upgrade(UpgradeType upgradeType) {
-        upgrade(upgradeType.lifeTotal, upgradeType.armourValue, upgradeType.initiative, upgradeType.attack, upgradeType.defense, upgradeType.damage, upgradeType.finteLevel, upgradeType.wuchtschlagLevel);
+        upgrade(upgradeType.lifeTotal, upgradeType.maxLife, upgradeType.armourValue, upgradeType.initiative, upgradeType.attack, upgradeType.defense, upgradeType.damage, upgradeType.finteLevel, upgradeType.wuchtschlagLevel);
     }
 
     // Test support Methoden für die Unit Tests
