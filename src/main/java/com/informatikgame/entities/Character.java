@@ -10,6 +10,7 @@ public class Character {
     protected int maxLife;
     protected int armourValue;
     protected int initiative;
+    private int randomizedInitiative;
     protected int attack;
     protected int defense;
     protected int damage;
@@ -24,6 +25,7 @@ public class Character {
         this.maxLife = lifeTotal;
         this.armourValue = armourValue;
         this.initiative = initiative;
+        this.setRandomizedInitiative(0);
         this.attack = attack;
         this.defense = defense;
         this.damage = damage;
@@ -31,6 +33,16 @@ public class Character {
         this.finteLevel = finteLevel;
         this.wuchtschlagLevel = wuchtschlagLevel;
         this.type = type;
+    }
+
+    public int getRandomizedInitiative() {
+        return randomizedInitiative;
+
+    }
+
+    public void setRandomizedInitiative(int randomizedInitiative) {
+        this.randomizedInitiative = randomizedInitiative;
+
     }
 
     //is alive
@@ -73,9 +85,8 @@ public class Character {
     }
 
     //Upgrade Character
-    public void upgrade(int lifeTotal, int maxLife, int armourValue, int initiative, int attack, int defense, int damage, int finteLevel, int wuchtschlagLevel) {
+    public void upgrade(int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage, int finteLevel, int wuchtschlagLevel) {
         this.lifeTotal += lifeTotal;
-        this.maxLife += maxLife;
         this.armourValue += armourValue;
         this.initiative += initiative;
         this.attack += attack;
@@ -105,7 +116,7 @@ public class Character {
         return Math.max(min, Math.min(max, value));
     }
 
-    public static Comparator<Character> initiativeComparator = (Character c1, Character c2) -> Integer.compare(c2.initiative, c1.initiative);
+    public static Comparator<Character> initiativeComparator = (Character c1, Character c2) -> Integer.compare(c2.getRandomizedInitiative(), c1.getRandomizedInitiative());
 
     // ===== GETTER METHODEN =====
     public int getLifeTotal() {
@@ -191,5 +202,9 @@ public class Character {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public int getMaxLife() {
+        return maxLife;
     }
 }

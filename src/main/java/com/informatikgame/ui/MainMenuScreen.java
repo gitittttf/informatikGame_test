@@ -157,7 +157,7 @@ public class MainMenuScreen extends GameScreen {
         graphics.setBackgroundColor(ScreenManager.BACKGROUND_COLOR);
         graphics.setForegroundColor(TextColor.ANSI.YELLOW);
         String controls = "↑↓ Navigation | ENTER Auswählen | ESC Zurück";
-        drawCentered(graphics, controls, size.getRows() - 1);
+        drawCentered(graphics, controls, size.getRows() - 2);
     }
 
     @Override

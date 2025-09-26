@@ -4,7 +4,7 @@ public enum StoryDatabank {
 
     INTRO_ROOM("""
         Du wachst benommen in einem zerschlagenen Labor auf. Blutspuren ziehen sich über den Boden, und flackernde Lichter tauchen alles in grelles Rot.
-        Eine Tür quietscht offen - dein einziger Ausweg. Ein einsamer Zombie schlurft durch die Trümmer. Du greifst nach einer Eisenstange ...
+        Eine Tür quietscht offen - dein einziger Ausweg. Ein einsamer Zombie schlurft durch die Trümmer. Du greifst nach deiner Waffe ...
     """),
     FLOOR_ROOM("""
         Der Boden ist übersät mit herumliegenden Dokumenten und zerbrochenem Glas. Zwei schlurfende Zombies bemerken dich sofort.

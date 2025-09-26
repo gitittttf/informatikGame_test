@@ -45,10 +45,10 @@ public class CharacterSelectionScreen extends GameScreen {
             x = (int) (Math.random() * size.getColumns());
             y = 0;
             // Geschwindigkeit
-            speed = 1 + (int) (Math.random() * 5);
+            speed = 1 + (int) (Math.random() * 0.5);
 
             // Symbole
-            char[] symbols = {'+', '"', '█', '*', '·', '•'};
+            char[] symbols = {'*', '·', '•'};
             symbol = symbols[(int) (Math.random() * symbols.length)];
 
             // Farbe
@@ -90,18 +90,21 @@ public class CharacterSelectionScreen extends GameScreen {
         int titleY = 5;
         for (int i = 0; i < titleArt.length; i++) {
             // Zufälliger Glitch-Effekt
-            if (animationFrame % 30 == 0 && Math.random() < 0.1) {
-                // Glitch: verschiebe Zeile leicht
-                int offset = (int) (Math.random() * 3) - 1;
-                graphics.setForegroundColor(new TextColor.RGB(153, 153, 0)); // TODO richtige farbe finden
-                drawCentered(graphics, titleArt[i], titleY + i + offset);
-            } else {
-                // Normal: grüne Farbe mit Pulsieren
-                // int brightness2 = 150 + (int) (Math.cos(animationFrame * 0.2 + i) * 70);
-                int brightness = 150 + (int) (Math.sin(animationFrame * 0.2 + i) * 70);
-                graphics.setForegroundColor(new TextColor.RGB(0, brightness, 0));
-                drawCentered(graphics, titleArt[i], titleY + i);
-            }
+            // if (animationFrame % 30 == 0 && Math.random() < 0.1) {
+            //     // Glitch: verschiebe Zeile leicht
+            //     int offset = (int) (Math.random() * 3) - 1;
+            //     graphics.setForegroundColor(new TextColor.RGB(153, 153, 0)); // TODO richtige farbe finden
+            //     drawCentered(graphics, titleArt[i], titleY + i + offset);
+            // } else {
+            //     // Normal: grüne Farbe mit Pulsieren
+            //     // int brightness2 = 150 + (int) (Math.cos(animationFrame * 0.2 + i) * 70);
+            //     int brightness = 150 + (int) (Math.sin(animationFrame * 0.2 + i) * 70);
+            //     graphics.setForegroundColor(new TextColor.RGB(0, brightness, 0));
+            //     drawCentered(graphics, titleArt[i], titleY + i);
+            // }
+            int brightness = 150 + (int) (Math.sin(animationFrame * 0.2 + i) * 70);
+            graphics.setForegroundColor(new TextColor.RGB(brightness, brightness, brightness));
+            drawCentered(graphics, titleArt[i], titleY + i);
         }
 
         // Untertitel mit Typewriter-Effekt

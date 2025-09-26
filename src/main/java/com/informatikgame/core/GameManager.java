@@ -177,7 +177,7 @@ public class GameManager implements FightManager.CombatEventListener {
             eventListener.onStoryDisplay(roomStory);
             // onRoomChange() will be called after story is read in continueAfterStory()
 
-            eventListener.onPlayerHealthChange(player.getLifeTotal(), maxPlayerHealth);
+            eventListener.onPlayerHealthChange(player.getLifeTotal(), player.getMaxLife());
         }
 
         // processCurrentRoom() will be called after story is read
