@@ -5,7 +5,7 @@ import java.io.IOException;
 import com.informatikgame.ui.GameplayScreen;
 import com.informatikgame.ui.MainMenuScreen;
 import com.informatikgame.ui.ScreenManager;
-// import com.informatikgame.ui.SettingsScreen;
+import com.informatikgame.ui.SettingsScreen;
 
 public class Main {
 
@@ -21,7 +21,7 @@ public class Main {
             // Alle Screens registrieren
             screenManager.registerScreen("menu", new MainMenuScreen());
             screenManager.registerScreen("game", new GameplayScreen());
-            // screenManager.registerScreen("settings", new SettingsScreen());
+            screenManager.registerScreen("settings", new SettingsScreen());
             // screenManager.registerScreen("help", new HelpScreen());
             // screenManager.registerScreen("credits", new CreditsScreen());
 

@@ -2,6 +2,8 @@ package com.informatikgame.ui;
 
 import java.awt.Font;
 import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +40,28 @@ public class ScreenManager {
     private SwingTerminalFrame swingFrame;
     private int currentFontSize = 16;
 
+    // Display mode settings
+    public enum DisplayMode {
+        FULLSCREEN, WINDOWED
+    }
+
+    public enum ScalingMode {
+        SMALL(0.5), NORMAL(1.0), LARGE(1.5), EXTRA_LARGE(2.0);
+
+        private final double scaleFactor;
+
+        ScalingMode(double scaleFactor) {
+            this.scaleFactor = scaleFactor;
+        }
+
+        public double getScaleFactor() {
+            return scaleFactor;
+        }
+    }
+
+    private DisplayMode currentDisplayMode = DisplayMode.FULLSCREEN;
+    private ScalingMode currentScalingMode = ScalingMode.NORMAL;
+
     // Simple dynamic scaling
     private final AtomicBoolean isRecreating = new AtomicBoolean(false);
     private final int TARGET_COLUMNS = 120;
@@ -67,21 +91,40 @@ public class ScreenManager {
     }
 
     /**
-     * Initialisiert das Terminal im Vollbildmodus mit dynamischer Skalierung
+     * Initialisiert das Terminal im echten Vollbildmodus mit korrekter
+     * Skalierung
      */
     public void initialize() throws IOException {
-        // Terminal-Factory mit dynamischer Schriftgrößenberechnung
+        initializeWithSettings(currentDisplayMode, currentScalingMode);
+    }
+
+    /**
+     * Initialisiert das Terminal mit den gegebenen Display-Einstellungen
+     */
+    private void initializeWithSettings(DisplayMode displayMode, ScalingMode scalingMode) throws IOException {
+        // Get screen dimensions
+        GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+        int screenWidth = gd.getDisplayMode().getWidth();
+        int screenHeight = gd.getDisplayMode().getHeight();
+
+        // Calculate base font size for the target grid
+        int baseFontWidthSize = (screenWidth - 100) / TARGET_COLUMNS;
+        int baseFontHeightSize = (screenHeight - 150) / TARGET_ROWS;
+        int baseFontSize = Math.min(baseFontWidthSize, baseFontHeightSize);
+
+        // Apply scaling factor
+        int fontSize = (int) (baseFontSize * scalingMode.getScaleFactor());
+        fontSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, fontSize));
+        currentFontSize = fontSize;
+
+        // Terminal-Factory setup
         DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
         terminalFactory.setPreferTerminalEmulator(true);
 
         TerminalSize initialSize = new TerminalSize(TARGET_COLUMNS, TARGET_ROWS);
         terminalFactory.setInitialTerminalSize(initialSize);
 
-        // Dynamische Schriftgrößenberechnung
-        int fontSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, TARGET_COLUMNS / 4));
-        currentFontSize = fontSize;
-
-        // Font-Konfiguration
+        // Font-Konfiguration mit berechneter Größe
         Font terminalFont = new Font(Font.MONOSPACED, Font.PLAIN, fontSize);
         SwingTerminalFontConfiguration fontConfig = SwingTerminalFontConfiguration.newInstance(terminalFont);
         terminalFactory.setTerminalEmulatorFontConfiguration(fontConfig);
@@ -89,12 +132,21 @@ public class ScreenManager {
         // Terminal erstellen
         terminal = terminalFactory.createTerminal();
 
-        // Fullscreen konfigurieren
+        // Configure frame based on display mode
         if (terminal instanceof SwingTerminalFrame frame) {
             this.swingFrame = frame;
-            frame.setExtendedState(Frame.MAXIMIZED_BOTH);
-            frame.setVisible(true);
             frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
+            // Dispose first to allow setUndecorated
+            frame.dispose();
+
+            if (displayMode == DisplayMode.FULLSCREEN) {
+                configureFullscreenMode(frame, gd, screenWidth, screenHeight, fontSize);
+            } else {
+                configureWindowedMode(frame, screenWidth, screenHeight, fontSize, scalingMode);
+            }
+
+            frame.setVisible(true);
         }
 
         // Screen erstellen
@@ -108,7 +160,114 @@ public class ScreenManager {
         graphics.setForegroundColor(TEXT_COLOR);
 
         clearScreen();
-        System.out.println("Terminal mit dynamischer Schriftgröße " + fontSize + " gestartet - einfache Skalierung aktiv");
+        System.out.println("Terminal-Setup abgeschlossen - Modus: " + displayMode + ", Skalierung: " + scalingMode + ", Schriftgröße: " + fontSize);
+    }
+
+    /**
+     * Konfiguriert Vollbildmodus
+     */
+    private void configureFullscreenMode(SwingTerminalFrame frame, GraphicsDevice gd,
+            int screenWidth, int screenHeight, int fontSize) {
+        frame.setUndecorated(true);
+        frame.setResizable(false);
+
+        if (gd.isFullScreenSupported()) {
+            try {
+                gd.setFullScreenWindow(frame);
+                System.out.println("Vollbildmodus aktiviert - " + screenWidth + "x" + screenHeight + ", Font: " + fontSize);
+            } catch (Exception e) {
+                System.out.println("Vollbildmodus fehlgeschlagen: " + e.getMessage() + ", verwende maximiert");
+                frame.setExtendedState(Frame.MAXIMIZED_BOTH);
+            }
+        } else {
+            System.out.println("Vollbildmodus nicht unterstützt, verwende maximiert - Font: " + fontSize);
+            frame.setExtendedState(Frame.MAXIMIZED_BOTH);
+        }
+    }
+
+    /**
+     * Konfiguriert Fenstermodus mit zentriertem Spiel und Letterboxing
+     */
+    private void configureWindowedMode(SwingTerminalFrame frame, int screenWidth, int screenHeight,
+            int fontSize, ScalingMode scalingMode) {
+        frame.setUndecorated(false); // Decorated window for windowed mode
+        frame.setResizable(true);    // Allow resizing in windowed mode
+
+        // Calculate window size based on font size and target grid
+        int gameWidth = (int) (TARGET_COLUMNS * fontSize * 0.6); // Approximate character width
+        int gameHeight = (int) (TARGET_ROWS * fontSize * 1.2);   // Approximate character height
+
+        // Add some padding
+        int windowWidth = gameWidth + 50;
+        int windowHeight = gameHeight + 100;
+
+        // Center window on screen
+        int windowX = (screenWidth - windowWidth) / 2;
+        int windowY = (screenHeight - windowHeight) / 2;
+
+        frame.setBounds(windowX, windowY, windowWidth, windowHeight);
+        System.out.println("Fenstermodus aktiviert - Größe: " + windowWidth + "x" + windowHeight + ", Font: " + fontSize);
+    }
+
+    /**
+     * Öffentliche Methoden für SettingsScreen
+     */
+    public boolean isFullscreenMode() {
+        return currentDisplayMode == DisplayMode.FULLSCREEN;
+    }
+
+    public ScalingMode getCurrentScalingMode() {
+        return currentScalingMode;
+    }
+
+    /**
+     * Wendet neue Display-Einstellungen an und startet das Terminal neu
+     */
+    public void applyDisplaySettings(Object displayMode, Object scalingMode) {
+        try {
+            // Convert from SettingsScreen enums to ScreenManager enums
+            DisplayMode newDisplayMode = DisplayMode.valueOf(displayMode.toString());
+            ScalingMode newScalingMode = ScalingMode.valueOf(scalingMode.toString());
+
+            // Store new settings
+            currentDisplayMode = newDisplayMode;
+            currentScalingMode = newScalingMode;
+
+            // Shutdown current terminal
+            shutdownTerminal();
+
+            // Reinitialize with new settings
+            initializeWithSettings(newDisplayMode, newScalingMode);
+
+            System.out.println("Einstellungen angewendet - Modus: " + newDisplayMode + ", Skalierung: " + newScalingMode);
+
+        } catch (Exception e) {
+            System.err.println("Fehler beim Anwenden der Einstellungen: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Beendet nur das Terminal (ohne die Anwendung zu beenden)
+     */
+    private void shutdownTerminal() {
+        try {
+            // Exit fullscreen mode first
+            GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+            if (gd.getFullScreenWindow() != null) {
+                gd.setFullScreenWindow(null);
+            }
+
+            // Clean up terminal and screen
+            if (screen != null) {
+                screen.stopScreen();
+            }
+            if (terminal != null) {
+                terminal.close();
+            }
+        } catch (Exception e) {
+            System.err.println("Fehler beim Beenden des Terminals: " + e.getMessage());
+        }
     }
 
     /**
@@ -234,53 +393,20 @@ public class ScreenManager {
     }
 
     /**
-     * Einfache dynamische Skalierung (alle 120 Frames = ~4 Sekunden)
+     * Resize-Check deaktiviert da Fenster nicht mehr verändert werden kann
+     * (Vollbildmodus ohne Dekoration, Größenänderung deaktiviert)
      */
     private void checkForSimpleResize() {
-        if (swingFrame == null || isRecreating.get()) {
-            return;
-        }
-
-        resizeCheckCounter++;
-        if (resizeCheckCounter < 120) {
-            return; // Check every ~4 seconds
-
-        }
-        resizeCheckCounter = 0;
-
-        try {
-            TerminalSize currentTerminalSize = screen.getTerminalSize();
-
-            // Einfache Neuberechnung basierend auf aktueller Terminal-Größe
-            int newFontSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, currentTerminalSize.getColumns() / 4));
-
-            // Wenn sich Größe signifikant geändert hat
-            if (Math.abs(newFontSize - currentFontSize) >= 3) {
-                System.out.println("Fenstergrößenänderung erkannt - Schriftgröße von " + currentFontSize + " zu " + newFontSize);
-                // Für jetzt nur loggen - volle Recreation kann später hinzugefügt werden
-                currentFontSize = newFontSize;
-            }
-
-        } catch (Exception e) {
-            System.err.println("Fehler beim Resize-Check: " + e.getMessage());
-        }
+        // Resize-Check deaktiviert da Vollbildmodus mit fester Größe
+        // Das verhindert das "Herumspringen" der ASCII-Zeichen
+        return;
     }
 
     /**
      * Beendet die GUI sauber
      */
     public void shutdown() {
-        try {
-            // Clean up terminal and screen
-            if (screen != null) {
-                screen.stopScreen();
-            }
-            if (terminal != null) {
-                terminal.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        shutdownTerminal();
     }
 
     // Getter für Screens
