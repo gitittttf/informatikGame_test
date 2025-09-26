@@ -85,7 +85,8 @@ public class Character {
     }
 
     //Upgrade Character
-    public void upgrade(int lifeTotal, int armourValue, int initiative, int attack, int defense, int damage, int finteLevel, int wuchtschlagLevel) {
+    public void upgrade(int lifeTotal, int maxLife, int armourValue, int initiative, int attack, int defense, int damage, int finteLevel, int wuchtschlagLevel) {
+        this.maxLife += maxLife;
         this.lifeTotal += lifeTotal;
         this.armourValue += armourValue;
         this.initiative += initiative;
