@@ -55,12 +55,12 @@ public class ScreenManager {
      * Initialisiert das Terminal im Vollbildmodus mit schwarzem Hintergrund
      */
     public void initialize() throws IOException {
+
         // Terminal-Factory mit besonderen Einstellungen
         DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
 
         // Setze Terminal-Eigenschaften für bessere Kontrolle
-        terminalFactory.setForceTextTerminal(false);
-        terminalFactory.setPreferTerminalEmulator(false);
+        terminalFactory.setPreferTerminalEmulator(true);
 
         // Die initial terminal size maximieren
         terminalFactory.setInitialTerminalSize(new TerminalSize(120, 40));
@@ -70,7 +70,7 @@ public class ScreenManager {
 
         // Wenn SwingTerminalFrame dann fullscreen konfigurieren
         if (terminal instanceof SwingTerminalFrame frame) {
-
+            // SwingTerminalFontConfiguration
             // Fenster anzeigen und maximieren
             frame.setVisible(true);
 
@@ -130,6 +130,7 @@ public class ScreenManager {
      * Hauptspiel-Loop
      */
     public void run() throws IOException {
+
         while (running && currentScreen != null) {
             // Bildschirm löschen
             clearScreen();
