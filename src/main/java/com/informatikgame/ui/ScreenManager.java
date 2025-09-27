@@ -289,11 +289,11 @@ public class ScreenManager {
     }
 
     /**
-     * Configure fullscreen mode with simple letterboxing while preserving input
-     * handling
+     * Configure fullscreen mode with proper window disposal and undecorated
+     * setup
      */
     private void configureFullscreenModeWithLetterboxing(SwingTerminalFrame originalFrame, GraphicsDevice gd, int fontSize) {
-        // Set black background for letterboxing effect - this will create the black borders
+        // Set black background for letterboxing effect
         originalFrame.getContentPane().setBackground(Color.BLACK);
 
         // Calculate terminal dimensions for reference
@@ -308,29 +308,38 @@ public class ScreenManager {
         int terminalHeight = TARGET_ROWS * charHeight;
         g.dispose();
 
-        // Try exclusive fullscreen - no need to make undecorated for exclusive fullscreen
+        // FIXED: Properly configure for true fullscreen
         if (gd.isFullScreenSupported()) {
             try {
-                System.out.println("Attempting exclusive fullscreen on " + gd.getIDstring() + "...");
+                System.out.println("Attempting TRUE fullscreen on " + gd.getIDstring() + "...");
+
+                // CRITICAL: Dispose first, then configure as undecorated
+                originalFrame.dispose();
+                originalFrame.setUndecorated(true);
+                originalFrame.setResizable(false);
+                originalFrame.setAlwaysOnTop(true);
+
+                // Now set fullscreen on properly configured window
                 gd.setFullScreenWindow(originalFrame);
+                originalFrame.setVisible(true);
 
                 // Verify fullscreen actually worked
                 if (gd.getFullScreenWindow() == originalFrame) {
-                    System.out.println("SUCCESS: Exclusive fullscreen activated on " + gd.getIDstring()
+                    System.out.println("SUCCESS: TRUE FULLSCREEN activated on " + gd.getIDstring()
                             + " - Resolution: " + gd.getDisplayMode().getWidth() + "x" + gd.getDisplayMode().getHeight()
                             + ", Font: " + fontSize + ", Game: " + terminalWidth + "x" + terminalHeight
                             + ", Display: " + (selectedDisplayId != null ? selectedDisplayId : "Default"));
                 } else {
-                    System.out.println("WARNING: Fullscreen was requested but not active, falling back to maximized window");
+                    System.out.println("WARNING: Fullscreen was requested but not active, falling back to borderless window");
                     configureBorderlessWindow(originalFrame, gd);
                 }
             } catch (Exception e) {
-                System.out.println("ERROR: Exclusive fullscreen failed: " + e.getMessage() + ", using maximized window");
+                System.out.println("ERROR: Exclusive fullscreen failed: " + e.getMessage() + ", using borderless window");
                 e.printStackTrace();
                 configureBorderlessWindow(originalFrame, gd);
             }
         } else {
-            System.out.println("INFO: Exclusive fullscreen not supported on this system, using maximized window");
+            System.out.println("INFO: Exclusive fullscreen not supported on this system, using borderless window");
             configureBorderlessWindow(originalFrame, gd);
         }
 
@@ -346,8 +355,18 @@ public class ScreenManager {
      */
     private void configureBorderlessWindow(SwingTerminalFrame frame, GraphicsDevice gd) {
         Rectangle bounds = gd.getDefaultConfiguration().getBounds();
+
+        // FIXED: Properly configure borderless window
+        frame.dispose();
+        frame.setUndecorated(true);
+        frame.setResizable(false);
+        frame.setAlwaysOnTop(true);
         frame.setBounds(bounds);
         frame.setExtendedState(Frame.NORMAL); // Ensure not maximized, use explicit bounds
+        frame.setVisible(true);
+
+        System.out.println("BORDERLESS FULLSCREEN activated on " + gd.getIDstring()
+                + " - Bounds: " + bounds.width + "x" + bounds.height);
     }
 
     /**
