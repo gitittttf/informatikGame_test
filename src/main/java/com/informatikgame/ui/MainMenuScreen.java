@@ -104,7 +104,6 @@ public class MainMenuScreen extends GameScreen {
                 drawCentered(graphics, titleArt[i], titleY + i + offset);
             } else {
                 // Normal: grüne Farbe mit Pulsieren
-                // int brightness2 = 150 + (int) (Math.cos(animationFrame * 0.2 + i) * 70);
                 int brightness = 150 + (int) (Math.sin(animationFrame * 0.2 + i) * 70);
                 graphics.setForegroundColor(new TextColor.RGB(0, brightness, 0));
                 drawCentered(graphics, titleArt[i], titleY + i);

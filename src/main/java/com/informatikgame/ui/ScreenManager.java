@@ -241,7 +241,6 @@ public class ScreenManager {
     private void initializeWithSettings(DisplayMode displayMode, ScalingMode scalingMode) throws IOException {
         // Get the selected graphics device
         GraphicsDevice gd = findDeviceByIdOrDefault(selectedDisplayId);
-        Dimension resolution = new Dimension(gd.getDisplayMode().getWidth(), gd.getDisplayMode().getHeight());
 
         // Compute optimal font size using binary search
         int fontSize = computeBestFontSize(gd, TARGET_COLUMNS, TARGET_ROWS);

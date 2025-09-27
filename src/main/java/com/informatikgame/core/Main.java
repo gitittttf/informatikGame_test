@@ -2,6 +2,7 @@ package com.informatikgame.core;
 
 import java.io.IOException;
 
+import com.informatikgame.ui.CharacterSelectionScreen;
 import com.informatikgame.ui.GameplayScreen;
 import com.informatikgame.ui.MainMenuScreen;
 import com.informatikgame.ui.ScreenManager;
@@ -22,6 +23,7 @@ public class Main {
             screenManager.registerScreen("menu", new MainMenuScreen());
             screenManager.registerScreen("game", new GameplayScreen());
             screenManager.registerScreen("settings", new SettingsScreen());
+            screenManager.registerScreen("characterSelection", new CharacterSelectionScreen());
             // screenManager.registerScreen("help", new HelpScreen());
             // screenManager.registerScreen("credits", new CreditsScreen());
 
