@@ -9,8 +9,6 @@ import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -21,9 +19,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
@@ -293,19 +289,14 @@ public class ScreenManager {
     }
 
     /**
-     * Configure fullscreen mode with proper letterboxing and centering
+     * Configure fullscreen mode with simple letterboxing while preserving input
+     * handling
      */
     private void configureFullscreenModeWithLetterboxing(SwingTerminalFrame originalFrame, GraphicsDevice gd, int fontSize) {
-        // Create custom frame for letterboxing with selected device's configuration
-        customFrame = new JFrame(gd.getDefaultConfiguration());
-        customFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        customFrame.setUndecorated(true);
-        customFrame.setResizable(false);
-        // Set black background  
-        customFrame.getContentPane().setBackground(java.awt.Color.BLACK);
-        customFrame.setLayout(new GridBagLayout());
+        // Set black background for letterboxing effect - this will create the black borders
+        originalFrame.getContentPane().setBackground(Color.BLACK);
 
-        // Calculate terminal component size
+        // Calculate terminal dimensions for reference
         Font terminalFont = new Font(Font.MONOSPACED, Font.PLAIN, fontSize);
         BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
         Graphics g = img.getGraphics();
@@ -317,102 +308,54 @@ public class ScreenManager {
         int terminalHeight = TARGET_ROWS * charHeight;
         g.dispose();
 
-        // Remove the original frame's content and add to our custom frame
-        originalFrame.setVisible(false);
-
-        // Safely extract terminal component
-        java.awt.Component terminalComponent = null;
-        if (originalFrame.getContentPane().getComponentCount() > 0) {
-            terminalComponent = originalFrame.getContentPane().getComponent(0);
-            originalFrame.getContentPane().remove(terminalComponent);
-        } else {
-            throw new RuntimeException("No terminal component found in original frame");
-        }
-
-        // Set both preferred and exact size for the terminal component
-        terminalComponent.setPreferredSize(new Dimension(terminalWidth, terminalHeight));
-        terminalComponent.setSize(new Dimension(terminalWidth, terminalHeight));
-
-        // Create a panel with black background for letterboxing
-        JPanel letterboxPanel = new JPanel(new GridBagLayout());
-        letterboxPanel.setBackground(Color.BLACK);
-
-        // Add terminal component to letterbox panel with proper centering
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.CENTER;
-        gbc.fill = GridBagConstraints.NONE;  // Don't stretch the component
-        gbc.weightx = 1.0;  // Take all horizontal space
-        gbc.weighty = 1.0;  // Take all vertical space
-        letterboxPanel.add(terminalComponent, gbc);
-
-        // Add the letterbox panel to the custom frame with GridBagLayout
-        GridBagConstraints frameGbc = new GridBagConstraints();
-        frameGbc.gridx = 0;
-        frameGbc.gridy = 0;
-        frameGbc.fill = GridBagConstraints.BOTH;
-        frameGbc.weightx = 1.0;
-        frameGbc.weighty = 1.0;
-        customFrame.add(letterboxPanel, frameGbc);
-
-        // Ensure terminal component can receive focus and input
-        terminalComponent.setFocusable(true);
-        terminalComponent.requestFocusInWindow();
-
-        // Try exclusive fullscreen first
+        // Try exclusive fullscreen - no need to make undecorated for exclusive fullscreen
         if (gd.isFullScreenSupported()) {
             try {
-                gd.setFullScreenWindow(customFrame);
-                System.out.println("Exclusive fullscreen activated on " + gd.getIDstring()
-                        + " - Resolution: " + gd.getDisplayMode().getWidth() + "x" + gd.getDisplayMode().getHeight()
-                        + ", Font: " + fontSize + ", Game: " + terminalWidth + "x" + terminalHeight
-                        + ", Display: " + (selectedDisplayId != null ? selectedDisplayId : "Default"));
+                System.out.println("Attempting exclusive fullscreen on " + gd.getIDstring() + "...");
+                gd.setFullScreenWindow(originalFrame);
+
+                // Verify fullscreen actually worked
+                if (gd.getFullScreenWindow() == originalFrame) {
+                    System.out.println("SUCCESS: Exclusive fullscreen activated on " + gd.getIDstring()
+                            + " - Resolution: " + gd.getDisplayMode().getWidth() + "x" + gd.getDisplayMode().getHeight()
+                            + ", Font: " + fontSize + ", Game: " + terminalWidth + "x" + terminalHeight
+                            + ", Display: " + (selectedDisplayId != null ? selectedDisplayId : "Default"));
+                } else {
+                    System.out.println("WARNING: Fullscreen was requested but not active, falling back to maximized window");
+                    configureBorderlessWindow(originalFrame, gd);
+                }
             } catch (Exception e) {
-                System.out.println("Exclusive fullscreen failed: " + e.getMessage() + ", using borderless window");
-                configureBorderlessWindow(gd);
+                System.out.println("ERROR: Exclusive fullscreen failed: " + e.getMessage() + ", using maximized window");
+                e.printStackTrace();
+                configureBorderlessWindow(originalFrame, gd);
             }
         } else {
-            System.out.println("Exclusive fullscreen not supported, using borderless window");
-            configureBorderlessWindow(gd);
+            System.out.println("INFO: Exclusive fullscreen not supported on this system, using maximized window");
+            configureBorderlessWindow(originalFrame, gd);
         }
 
-        // Set visible first, then request focus
-        customFrame.setVisible(true);
-
-        // Ensure the terminal gets focus for input handling
-        final java.awt.Component finalTerminalComponent = terminalComponent;
+        // Ensure the frame gets focus for input handling
         SwingUtilities.invokeLater(() -> {
-            finalTerminalComponent.requestFocusInWindow();
-        });
-
-        // Don't dispose the original frame immediately - wait a bit
-        final SwingTerminalFrame frameToDispose = originalFrame;
-        SwingUtilities.invokeLater(() -> {
-            try {
-                Thread.sleep(100); // Give time for focus transfer
-                frameToDispose.dispose();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            originalFrame.toFront();
+            originalFrame.requestFocus();
         });
     }
 
     /**
      * Configure borderless window that covers the selected monitor
      */
-    private void configureBorderlessWindow(GraphicsDevice gd) {
+    private void configureBorderlessWindow(SwingTerminalFrame frame, GraphicsDevice gd) {
         Rectangle bounds = gd.getDefaultConfiguration().getBounds();
-        customFrame.setBounds(bounds);
-        customFrame.setExtendedState(Frame.NORMAL); // Ensure not maximized, use explicit bounds
+        frame.setBounds(bounds);
+        frame.setExtendedState(Frame.NORMAL); // Ensure not maximized, use explicit bounds
     }
 
     /**
      * Configure windowed mode with proper sizing and centering
      */
     private void configureWindowedModeWithLetterboxing(SwingTerminalFrame frame, GraphicsDevice gd, int fontSize, ScalingMode scalingMode) {
-        frame.setUndecorated(false); // Decorated window for windowed mode
-        frame.setResizable(true);    // Allow resizing in windowed mode
+        // Skip setUndecorated and setResizable calls to avoid IllegalComponentStateException
+        // The Lanterna SwingTerminalFrame should be properly configured by default
 
         // Calculate accurate window size using FontMetrics
         Font terminalFont = new Font(Font.MONOSPACED, Font.PLAIN, fontSize);
@@ -481,6 +424,18 @@ public class ScreenManager {
             // Reinitialize with new settings
             initializeWithSettings(newDisplayMode, newScalingMode);
 
+            // Ensure focus is restored after reinitialization
+            SwingUtilities.invokeLater(() -> {
+                if (swingFrame != null) {
+                    swingFrame.toFront();
+                    swingFrame.requestFocus();
+                    // Give the terminal component focus specifically
+                    SwingUtilities.invokeLater(() -> {
+                        swingFrame.requestFocusInWindow();
+                    });
+                }
+            });
+
             System.out.println("Display settings applied - Mode: " + newDisplayMode
                     + ", Scaling: " + newScalingMode + ", Display: "
                     + (displayId != null ? displayId : "Default"));
@@ -504,13 +459,7 @@ public class ScreenManager {
                 }
             }
 
-            // Clean up custom frame
-            if (customFrame != null) {
-                customFrame.setVisible(false);
-                customFrame.dispose();
-                customFrame = null;
-            }
-
+            // No custom frame cleanup needed since we use original frame directly
             // Clean up terminal and screen
             if (screen != null) {
                 screen.stopScreen();

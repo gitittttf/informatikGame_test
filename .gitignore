@@ -10,6 +10,7 @@ target/
 # Kompilierte Klassen
 target/
 *.class
+*.lst
 
 # Logs
 *.log
