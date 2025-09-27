@@ -1,5 +1,6 @@
 package com.informatikgame.ui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -8,6 +9,8 @@ import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -18,7 +21,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
 import com.googlecode.lanterna.TerminalPosition;
 import com.googlecode.lanterna.TerminalSize;
@@ -247,7 +252,7 @@ public class ScreenManager {
         fontSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, fontSize));
         currentFontSize = fontSize;
 
-        // Terminal-Factory setup with fullscreen-specific configuration
+        // Terminal-Factory setup
         DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
         terminalFactory.setPreferTerminalEmulator(true);
 
@@ -259,15 +264,15 @@ public class ScreenManager {
         SwingTerminalFontConfiguration fontConfig = SwingTerminalFontConfiguration.newInstance(terminalFont);
         terminalFactory.setTerminalEmulatorFontConfiguration(fontConfig);
 
-        // Create terminal normally
+        // Terminal erstellen
         terminal = terminalFactory.createTerminal();
 
-        // Configure based on display mode AFTER creation
+        // Configure frame based on display mode with letterboxing
         if (terminal instanceof SwingTerminalFrame originalFrame) {
             this.swingFrame = originalFrame;
 
             if (displayMode == DisplayMode.FULLSCREEN) {
-                configureSimpleFullscreen(originalFrame, gd, fontSize);
+                configureFullscreenModeWithLetterboxing(originalFrame, gd, fontSize);
             } else {
                 configureWindowedModeWithLetterboxing(originalFrame, gd, fontSize, scalingMode);
             }
@@ -288,40 +293,109 @@ public class ScreenManager {
     }
 
     /**
-     * Simple fullscreen that works with Lanterna's constraints
+     * Configure fullscreen mode with proper letterboxing and centering
      */
-    private void configureSimpleFullscreen(SwingTerminalFrame frame, GraphicsDevice gd, int fontSize) {
-        // Since we can't call setUndecorated() on displayable frame,
-        // use maximize and borderless window positioning instead
-        frame.setResizable(false);
-        frame.getContentPane().setBackground(java.awt.Color.BLACK);
+    private void configureFullscreenModeWithLetterboxing(SwingTerminalFrame originalFrame, GraphicsDevice gd, int fontSize) {
+        // Create custom frame for letterboxing with selected device's configuration
+        customFrame = new JFrame(gd.getDefaultConfiguration());
+        customFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        customFrame.setUndecorated(true);
+        customFrame.setResizable(false);
+        // Set black background  
+        customFrame.getContentPane().setBackground(java.awt.Color.BLACK);
+        customFrame.setLayout(new GridBagLayout());
 
-        // Use borderless maximize approach
-        Rectangle bounds = gd.getDefaultConfiguration().getBounds();
-        frame.setBounds(bounds);
-        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
+        // Calculate terminal component size
+        Font terminalFont = new Font(Font.MONOSPACED, Font.PLAIN, fontSize);
+        BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        Graphics g = img.getGraphics();
+        FontMetrics fm = g.getFontMetrics(terminalFont);
 
-        System.out.println("SIMPLE fullscreen activated on " + gd.getIDstring()
-                + " - Resolution: " + gd.getDisplayMode().getWidth() + "x" + gd.getDisplayMode().getHeight()
-                + ", Font: " + fontSize + ", Display: " + (selectedDisplayId != null ? selectedDisplayId : "Default"));
+        int charWidth = fm.charWidth('M');
+        int charHeight = fm.getHeight();
+        int terminalWidth = TARGET_COLUMNS * charWidth;
+        int terminalHeight = TARGET_ROWS * charHeight;
+        g.dispose();
 
-        // Ensure proper input handling
+        // Remove the original frame's content and add to our custom frame
+        originalFrame.setVisible(false);
+
+        // Safely extract terminal component
+        java.awt.Component terminalComponent = null;
+        if (originalFrame.getContentPane().getComponentCount() > 0) {
+            terminalComponent = originalFrame.getContentPane().getComponent(0);
+            originalFrame.getContentPane().remove(terminalComponent);
+        } else {
+            throw new RuntimeException("No terminal component found in original frame");
+        }
+
+        // Set both preferred and exact size for the terminal component
+        terminalComponent.setPreferredSize(new Dimension(terminalWidth, terminalHeight));
+        terminalComponent.setSize(new Dimension(terminalWidth, terminalHeight));
+
+        // Create a panel with black background for letterboxing
+        JPanel letterboxPanel = new JPanel(new GridBagLayout());
+        letterboxPanel.setBackground(Color.BLACK);
+
+        // Add terminal component to letterbox panel with proper centering
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.fill = GridBagConstraints.NONE;  // Don't stretch the component
+        gbc.weightx = 1.0;  // Take all horizontal space
+        gbc.weighty = 1.0;  // Take all vertical space
+        letterboxPanel.add(terminalComponent, gbc);
+
+        // Add the letterbox panel to the custom frame with GridBagLayout
+        GridBagConstraints frameGbc = new GridBagConstraints();
+        frameGbc.gridx = 0;
+        frameGbc.gridy = 0;
+        frameGbc.fill = GridBagConstraints.BOTH;
+        frameGbc.weightx = 1.0;
+        frameGbc.weighty = 1.0;
+        customFrame.add(letterboxPanel, frameGbc);
+
+        // Ensure terminal component can receive focus and input
+        terminalComponent.setFocusable(true);
+        terminalComponent.requestFocusInWindow();
+
+        // Try exclusive fullscreen first
+        if (gd.isFullScreenSupported()) {
+            try {
+                gd.setFullScreenWindow(customFrame);
+                System.out.println("Exclusive fullscreen activated on " + gd.getIDstring()
+                        + " - Resolution: " + gd.getDisplayMode().getWidth() + "x" + gd.getDisplayMode().getHeight()
+                        + ", Font: " + fontSize + ", Game: " + terminalWidth + "x" + terminalHeight
+                        + ", Display: " + (selectedDisplayId != null ? selectedDisplayId : "Default"));
+            } catch (Exception e) {
+                System.out.println("Exclusive fullscreen failed: " + e.getMessage() + ", using borderless window");
+                configureBorderlessWindow(gd);
+            }
+        } else {
+            System.out.println("Exclusive fullscreen not supported, using borderless window");
+            configureBorderlessWindow(gd);
+        }
+
+        // Set visible first, then request focus
+        customFrame.setVisible(true);
+
+        // Ensure the terminal gets focus for input handling
+        final java.awt.Component finalTerminalComponent = terminalComponent;
         SwingUtilities.invokeLater(() -> {
-            frame.requestFocus();
-            frame.toFront();
-            frame.setFocusTraversalKeysEnabled(false);
-            System.out.println("SIMPLE fullscreen setup completed - input preserved!");
+            finalTerminalComponent.requestFocusInWindow();
         });
-    }
 
-    /**
-     * Configure borderless window covering the monitor
-     */
-    private void configureBorderlessWindow(SwingTerminalFrame frame, GraphicsDevice gd) {
-        Rectangle bounds = gd.getDefaultConfiguration().getBounds();
-        frame.setBounds(bounds);
-        frame.setExtendedState(Frame.NORMAL);
-        frame.setVisible(true);
+        // Don't dispose the original frame immediately - wait a bit
+        final SwingTerminalFrame frameToDispose = originalFrame;
+        SwingUtilities.invokeLater(() -> {
+            try {
+                Thread.sleep(100); // Give time for focus transfer
+                frameToDispose.dispose();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
     }
 
     /**
