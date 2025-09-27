@@ -1,0 +1,138 @@
+package com.informatikgame.ui.components;
+
+import com.googlecode.lanterna.TerminalPosition;
+import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.graphics.TextGraphics;
+import com.googlecode.lanterna.gui2.ComponentRenderer;
+import com.googlecode.lanterna.gui2.FocusChangeDirection;
+import com.googlecode.lanterna.gui2.Interactable;
+import com.googlecode.lanterna.gui2.TextGUIGraphics;
+import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.input.KeyType;
+import com.informatikgame.ui.ScreenManager;
+
+/**
+ * Animated menu component with selection arrows and animated borders
+ */
+public class AnimatedMenuComponent extends AnimatedComponent implements Interactable {
+    
+    private final String[] menuOptions;
+    private int selectedOption = 0;
+    private Runnable[] actions;
+    
+    public AnimatedMenuComponent(String[] menuOptions) {
+        super();
+        this.menuOptions = menuOptions;
+        this.actions = new Runnable[menuOptions.length];
+        // Component is interactable by default
+    }
+    
+    public void setAction(int index, Runnable action) {
+        if (index >= 0 && index < actions.length) {
+            actions[index] = action;
+        }
+    }
+    
+    @Override
+    protected void renderAnimation(TextGraphics graphics, TerminalSize size) {
+        // Menü Box (same positioning logic as original)
+        int menuWidth = 40;
+        int menuHeight = menuOptions.length + 4;
+        int menuX = (size.getColumns() - menuWidth) / 2;
+        int menuY = 5;
+        
+        // Box mit animiertem Rahmen (exact same as original)
+        TextColor borderColor = animationFrame % 20 < 10
+                ? ScreenManager.PRIMARY_COLOR : ScreenManager.SECONDARY_COLOR;
+        drawBox(graphics, menuX, menuY, menuWidth, menuHeight,
+                borderColor, ScreenManager.BACKGROUND_COLOR);
+        
+        // Menü Optionen (exact same logic as original)
+        for (int i = 0; i < menuOptions.length; i++) {
+            int optionY = menuY + 2 + i;
+            String option = menuOptions[i];
+            
+            if (i == selectedOption) {
+                // Ausgewählte Option ist animiert und hervorgehoben (same as original)
+                graphics.setBackgroundColor(new TextColor.RGB(0, 50, 0));
+                graphics.setForegroundColor(TextColor.ANSI.YELLOW);
+                
+                // Animierter Pfeil (same as original)
+                String arrow = (animationFrame % 10 < 5) ? "►►► " : ">>>>";
+                graphics.putString(new TerminalPosition(menuX + 2, optionY),
+                        arrow + option.substring(1) + " " + arrow);
+            } else {
+                // Normale Option (same as original)
+                graphics.setBackgroundColor(ScreenManager.BACKGROUND_COLOR);
+                graphics.setForegroundColor(ScreenManager.TEXT_COLOR);
+                graphics.putString(new TerminalPosition(menuX + 5, optionY), option);
+            }
+        }
+        
+        // Footer mit Steuerungshinweisen (same as original)
+        graphics.setBackgroundColor(ScreenManager.BACKGROUND_COLOR);
+        graphics.setForegroundColor(TextColor.ANSI.YELLOW);
+        String controls = "↑↓ Navigation | ENTER Auswählen | ESC Zurück";
+        drawCentered(graphics, controls, size.getRows() - 2);
+    }
+    
+    @Override
+    public Result handleKeyStroke(KeyStroke keyStroke) {
+        if (keyStroke.getKeyType() == KeyType.ArrowUp) {
+            selectedOption = (selectedOption - 1 + menuOptions.length) % menuOptions.length;
+            invalidate();
+            return Result.HANDLED;
+        } else if (keyStroke.getKeyType() == KeyType.ArrowDown) {
+            selectedOption = (selectedOption + 1) % menuOptions.length;
+            invalidate();
+            return Result.HANDLED;
+        } else if (keyStroke.getKeyType() == KeyType.Enter) {
+            if (actions[selectedOption] != null) {
+                actions[selectedOption].run();
+            }
+            return Result.HANDLED;
+        }
+        return Result.UNHANDLED;
+    }
+    
+    @Override
+    public boolean isFocusable() {
+        return true;
+    }
+    
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+    
+    @Override
+    public void afterEnterFocus(FocusChangeDirection direction, Interactable previouslyInFocus) {
+        invalidate();
+    }
+    
+    @Override
+    public void afterLeaveFocus(FocusChangeDirection direction, Interactable nextInFocus) {
+        invalidate();
+    }
+    
+    public int getSelectedOption() {
+        return selectedOption;
+    }
+    
+    @Override
+    protected ComponentRenderer<AnimatedComponent> createDefaultRenderer() {
+        return new ComponentRenderer<AnimatedComponent>() {
+            @Override
+            public TerminalSize getPreferredSize(AnimatedComponent component) {
+                return new TerminalSize(50, menuOptions.length + 10);
+            }
+            
+            @Override
+            public void drawComponent(TextGUIGraphics graphics, AnimatedComponent component) {
+                TerminalSize size = component.getSize();
+                component.renderAnimation(graphics, size);
+            }
+        };
+    }
+}
