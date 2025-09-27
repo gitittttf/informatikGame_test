@@ -1,6 +1,8 @@
 package com.informatikgame.ui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -19,6 +21,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import com.googlecode.lanterna.TerminalPosition;
@@ -289,14 +292,10 @@ public class ScreenManager {
     }
 
     /**
-     * Configure fullscreen mode with proper window disposal and undecorated
-     * setup
+     * Configure fullscreen mode with proper window disposal and centered layout
      */
     private void configureFullscreenModeWithLetterboxing(SwingTerminalFrame originalFrame, GraphicsDevice gd, int fontSize) {
-        // Set black background for letterboxing effect
-        originalFrame.getContentPane().setBackground(Color.BLACK);
-
-        // Calculate terminal dimensions for reference
+        // Calculate terminal dimensions for proper centering
         Font terminalFont = new Font(Font.MONOSPACED, Font.PLAIN, fontSize);
         BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
         Graphics g = img.getGraphics();
@@ -308,10 +307,19 @@ public class ScreenManager {
         int terminalHeight = TARGET_ROWS * charHeight;
         g.dispose();
 
-        // FIXED: Properly configure for true fullscreen
+        // FIXED: Properly configure for true fullscreen with centering
         if (gd.isFullScreenSupported()) {
             try {
-                System.out.println("Attempting TRUE fullscreen on " + gd.getIDstring() + "...");
+                System.out.println("Attempting TRUE CENTERED fullscreen on " + gd.getIDstring() + "...");
+
+                // Get screen dimensions for centering calculations
+                Rectangle screenBounds = gd.getDefaultConfiguration().getBounds();
+                int screenWidth = screenBounds.width;
+                int screenHeight = screenBounds.height;
+
+                // Calculate centering offsets
+                int centerX = (screenWidth - terminalWidth) / 2;
+                int centerY = (screenHeight - terminalHeight) / 2;
 
                 // CRITICAL: Dispose first, then configure as undecorated
                 originalFrame.dispose();
@@ -319,15 +327,59 @@ public class ScreenManager {
                 originalFrame.setResizable(false);
                 originalFrame.setAlwaysOnTop(true);
 
+                // Set black background for letterboxing effect
+                originalFrame.getContentPane().setBackground(Color.BLACK);
+
+                // Create a centered layout panel
+                JPanel centerPanel = new JPanel(new BorderLayout());
+                centerPanel.setBackground(Color.BLACK);
+                centerPanel.setOpaque(true);
+
+                // Get the terminal component and center it
+                Component terminalComponent = originalFrame.getContentPane().getComponent(0);
+                originalFrame.getContentPane().removeAll();
+
+                // Add padding panels for centering
+                JPanel topPadding = new JPanel();
+                topPadding.setBackground(Color.BLACK);
+                topPadding.setPreferredSize(new Dimension(screenWidth, centerY));
+
+                JPanel bottomPadding = new JPanel();
+                bottomPadding.setBackground(Color.BLACK);
+                bottomPadding.setPreferredSize(new Dimension(screenWidth, centerY));
+
+                JPanel leftPadding = new JPanel();
+                leftPadding.setBackground(Color.BLACK);
+                leftPadding.setPreferredSize(new Dimension(centerX, terminalHeight));
+
+                JPanel rightPadding = new JPanel();
+                rightPadding.setBackground(Color.BLACK);
+                rightPadding.setPreferredSize(new Dimension(centerX, terminalHeight));
+
+                // Create center container for terminal
+                JPanel terminalContainer = new JPanel(new BorderLayout());
+                terminalContainer.setBackground(Color.BLACK);
+                terminalContainer.add(terminalComponent, BorderLayout.CENTER);
+
+                // Assemble the centered layout
+                centerPanel.add(topPadding, BorderLayout.NORTH);
+                centerPanel.add(bottomPadding, BorderLayout.SOUTH);
+                centerPanel.add(leftPadding, BorderLayout.WEST);
+                centerPanel.add(rightPadding, BorderLayout.EAST);
+                centerPanel.add(terminalContainer, BorderLayout.CENTER);
+
+                // Add the centered panel to the frame
+                originalFrame.getContentPane().add(centerPanel, BorderLayout.CENTER);
+
                 // Now set fullscreen on properly configured window
                 gd.setFullScreenWindow(originalFrame);
                 originalFrame.setVisible(true);
 
                 // Verify fullscreen actually worked
                 if (gd.getFullScreenWindow() == originalFrame) {
-                    System.out.println("SUCCESS: TRUE FULLSCREEN activated on " + gd.getIDstring()
-                            + " - Resolution: " + gd.getDisplayMode().getWidth() + "x" + gd.getDisplayMode().getHeight()
-                            + ", Font: " + fontSize + ", Game: " + terminalWidth + "x" + terminalHeight
+                    System.out.println("SUCCESS: TRUE CENTERED FULLSCREEN activated on " + gd.getIDstring()
+                            + " - Resolution: " + screenWidth + "x" + screenHeight
+                            + ", Font: " + fontSize + ", Game: " + terminalWidth + "x" + terminalHeight + " centered at (" + centerX + "," + centerY + ")"
                             + ", Display: " + (selectedDisplayId != null ? selectedDisplayId : "Default"));
                 } else {
                     System.out.println("WARNING: Fullscreen was requested but not active, falling back to borderless window");
