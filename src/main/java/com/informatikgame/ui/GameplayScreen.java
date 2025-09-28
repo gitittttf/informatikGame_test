@@ -75,8 +75,8 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
     @Override
     public void onCombatLogUpdate(String message) {
         combatLog.add(message);
-        // Nur die letzten 10 Nachrichten behalten
-        if (combatLog.size() > 10) {
+        // Nur die letzten 15 Nachrichten behalten
+        if (combatLog.size() > 15) {
             combatLog.remove(0);
         }
     }
@@ -206,7 +206,7 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
                 drawPlayerPanel(graphics, 0, mainAreaY, columnWidth, size.getRows() - mainAreaY - 5);
                 drawGameArea(graphics, columnWidth, mainAreaY, columnWidth, size.getRows() - mainAreaY - 5);
                 drawInfoPanel(graphics, columnWidth * 2, mainAreaY, columnWidth, size.getRows() - mainAreaY - 5);
-                drawCombatLog(graphics, 0, size.getRows() - 5, size.getColumns(), 5); // TODO
+                drawCombatLog(graphics, 0, size.getRows() - 15, size.getColumns(), 15); // TODO
             }
         }
     }
@@ -932,13 +932,13 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
             graphics.setForegroundColor(TextColor.ANSI.WHITE);
             graphics.putString(new TerminalPosition(promptX + 4, promptY + 1), promptText);
         } else {
-            promptText = "Story wird geladen...";
+            promptText = "Story wird geladen ";
             graphics.setForegroundColor(TextColor.ANSI.BLACK_BRIGHT);
             graphics.putString(new TerminalPosition(promptX + 2, promptY + 1), promptText);
 
             // Add loading dots animation
             int dots = (animationFrame / 10) % 4;
-            String dotString = " ".repeat(3 - dots) + ".".repeat(dots);
+            String dotString = ".".repeat(dots) + " ".repeat(3 - dots);
             graphics.putString(new TerminalPosition(promptX + promptText.length() + 3, promptY + 1), dotString);
         }
     }

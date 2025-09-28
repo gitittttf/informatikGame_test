@@ -109,8 +109,6 @@ public class CharacterSelectionScreen extends GameScreen {
                 graphics.setForegroundColor(new TextColor.RGB(0, brightness, 0));
                 drawCentered(graphics, titleArt[i], titleY + i);
             }
-            int brightness = 150 + (int) (Math.sin(animationFrame * 0.2 + i) * 70);
-            graphics.setForegroundColor(new TextColor.RGB(brightness, brightness, brightness));
             drawCentered(graphics, titleArt[i], titleY + i);
         }
 
@@ -181,17 +179,14 @@ public class CharacterSelectionScreen extends GameScreen {
 
     private void executeOption() {
         PlayerType selectedType;
-        switch (selectedOption) {
-            case 0:
-                selectedType = PlayerType.SWORD_FIGHTER;
-                break;
-            case 1:
-                selectedType = PlayerType.SHIELD_FIGHTER;
-                break;
-            default:
-                selectedType = PlayerType.SWORD_FIGHTER;
-                break;
-        }
+        selectedType = switch (selectedOption) {
+            case 0 ->
+                PlayerType.SWORD_FIGHTER;
+            case 1 ->
+                PlayerType.SHIELD_FIGHTER;
+            default ->
+                PlayerType.SWORD_FIGHTER;
+        };
 
         // Initialize game with selected player type
         gameManager.initializeGameWithPlayer(selectedType);
@@ -210,6 +205,7 @@ public class CharacterSelectionScreen extends GameScreen {
 
     @Override
     public boolean onEscape() {
-        return selectedOption == 5; // Nur wenn "Beenden" ausgewählt
+        screenManager.switchToScreen("menu");
+        return false;
     }
 }
