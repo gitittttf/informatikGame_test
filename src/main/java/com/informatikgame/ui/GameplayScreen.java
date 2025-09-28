@@ -18,6 +18,10 @@ import com.informatikgame.entities.Enemy;
 public class GameplayScreen extends GameScreen implements GameManager.GameEventListener {
 
     private GameManager gameManager;
+
+    public void setGameManager(GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
     private List<String> combatLog;
     private String currentRoomName = "";
     private String currentRoomDescription = "";

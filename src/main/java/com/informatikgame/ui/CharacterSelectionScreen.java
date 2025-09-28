@@ -6,12 +6,15 @@ import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.informatikgame.core.GameManager;
-import com.informatikgame.entities.Player;
 import com.informatikgame.world.PlayerType;
 
 public class CharacterSelectionScreen extends GameScreen {
 
     private GameManager gameManager;
+
+    public void setGameManager(GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
     private int selectedOption = 0;
     private final String[] characterSelectionOptions = {
         "► Schwertkrieger",
@@ -176,18 +179,23 @@ public class CharacterSelectionScreen extends GameScreen {
         }
     }
 
-    // TODO: FALSCHE OPTIONEN, character selection implementieren
     private void executeOption() {
+        PlayerType selectedType;
         switch (selectedOption) {
-            case 0 -> { // Sword
-                gameManager.setPlayer(new Player(PlayerType.SWORD_FIGHTER)); // ich glaube das funktioniert nicht
-                screenManager.switchToScreen("game");
-            }
-            case 1 -> { // Shield
-                gameManager.setPlayer(new Player(PlayerType.SHIELD_FIGHTER)); // ich glaube das funktioniert nicht
-                screenManager.switchToScreen("game");
-            }
+            case 0:
+                selectedType = PlayerType.SWORD_FIGHTER;
+                break;
+            case 1:
+                selectedType = PlayerType.SHIELD_FIGHTER;
+                break;
+            default:
+                selectedType = PlayerType.SWORD_FIGHTER;
+                break;
         }
+
+        // Initialize game with selected player type
+        gameManager.initializeGameWithPlayer(selectedType);
+        screenManager.switchToScreen("game");
     }
 
     @Override

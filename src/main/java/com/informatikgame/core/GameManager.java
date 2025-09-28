@@ -8,6 +8,7 @@ import com.informatikgame.entities.Enemy;
 import com.informatikgame.entities.Player;
 import com.informatikgame.ui.StoryDatabank;
 import com.informatikgame.world.EnemyType;
+import com.informatikgame.world.PlayerType;
 import com.informatikgame.world.Room;
 import com.informatikgame.world.RoomType;
 import com.informatikgame.world.World;
@@ -135,7 +136,7 @@ public class GameManager implements FightManager.CombatEventListener {
     public GameManager() {
         this.inputQueue = new LinkedList<>();
         this.waitingForInput = false;
-        initializeGame();
+        // initializeGame();
     }
 
     public void setEventListener(GameEventListener listener) {
@@ -145,11 +146,11 @@ public class GameManager implements FightManager.CombatEventListener {
     /**
      * Initialisiert das Spiel mit Standardwerten
      */
-    private void initializeGame() {
-        // Spieler mit PlayerType erstellen (hier testweise SWORD_FIGHTER)
+    public void initializeGameWithPlayer(PlayerType playerType) {
+        // Spieler mit PlayerType erstellen
         // lifeTotal, armourValue, initiative, attack, defense, damage
+        this.player = new Player(playerType);
 
-        player.getLifeTotal();
         this.fightManager = new FightManager(player);
         this.fightManager.setCombatEventListener(this);  // Set GameManager as combat listener
 

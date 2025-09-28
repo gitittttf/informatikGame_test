@@ -19,11 +19,21 @@ public class Main {
             // Terminal initialisieren (mit Vollbild und schwarzem Hintergrund)
             screenManager.initialize();
 
+            // GameManager erstellen
+            GameManager gameManager = new GameManager();
+
             // Alle Screens registrieren
             screenManager.registerScreen("menu", new MainMenuScreen());
-            screenManager.registerScreen("game", new GameplayScreen());
+
+            GameplayScreen gameplayScreen = new GameplayScreen();
+            gameplayScreen.setGameManager(gameManager);
+            screenManager.registerScreen("game", gameplayScreen);
+
             screenManager.registerScreen("settings", new SettingsScreen());
-            screenManager.registerScreen("characterSelection", new CharacterSelectionScreen());
+
+            CharacterSelectionScreen characterSelectionScreen = new CharacterSelectionScreen();
+            characterSelectionScreen.setGameManager(gameManager);
+            screenManager.registerScreen("characterSelection", characterSelectionScreen);
             // screenManager.registerScreen("help", new HelpScreen());
             // screenManager.registerScreen("credits", new CreditsScreen());
 
