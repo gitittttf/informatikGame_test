@@ -180,11 +180,11 @@ public class CharacterSelectionScreen extends GameScreen {
     private void executeOption() {
         switch (selectedOption) {
             case 0 -> { // Sword
-                gameManager.setPlayer(new Player(PlayerType.SWORD_FIGHTER));
+                gameManager.setPlayer(new Player(PlayerType.SWORD_FIGHTER)); // ich glaube das funktioniert nicht
                 screenManager.switchToScreen("game");
             }
             case 1 -> { // Shield
-                gameManager.setPlayer(new Player(PlayerType.SHIELD_FIGHTER));
+                gameManager.setPlayer(new Player(PlayerType.SHIELD_FIGHTER)); // ich glaube das funktioniert nicht
                 screenManager.switchToScreen("game");
             }
         }
