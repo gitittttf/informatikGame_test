@@ -5,9 +5,13 @@ import com.googlecode.lanterna.TerminalSize;
 import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.input.KeyStroke;
+import com.informatikgame.core.GameManager;
+import com.informatikgame.entities.Player;
+import com.informatikgame.world.PlayerType;
 
 public class CharacterSelectionScreen extends GameScreen {
 
+    private GameManager gameManager;
     private int selectedOption = 0;
     private final String[] characterSelectionOptions = {
         "► Schwertkrieger",
@@ -90,18 +94,18 @@ public class CharacterSelectionScreen extends GameScreen {
         int titleY = 5;
         for (int i = 0; i < titleArt.length; i++) {
             // Zufälliger Glitch-Effekt
-            // if (animationFrame % 30 == 0 && Math.random() < 0.1) {
-            //     // Glitch: verschiebe Zeile leicht
-            //     int offset = (int) (Math.random() * 3) - 1;
-            //     graphics.setForegroundColor(new TextColor.RGB(153, 153, 0)); // TODO richtige farbe finden
-            //     drawCentered(graphics, titleArt[i], titleY + i + offset);
-            // } else {
-            //     // Normal: grüne Farbe mit Pulsieren
-            //     // int brightness2 = 150 + (int) (Math.cos(animationFrame * 0.2 + i) * 70);
-            //     int brightness = 150 + (int) (Math.sin(animationFrame * 0.2 + i) * 70);
-            //     graphics.setForegroundColor(new TextColor.RGB(0, brightness, 0));
-            //     drawCentered(graphics, titleArt[i], titleY + i);
-            // }
+            if (animationFrame % 30 == 0 && Math.random() < 0.1) {
+                // Glitch: verschiebe Zeile leicht
+                int offset = (int) (Math.random() * 3) - 1;
+                graphics.setForegroundColor(new TextColor.RGB(153, 153, 0)); // TODO richtige farbe finden
+                drawCentered(graphics, titleArt[i], titleY + i + offset);
+            } else {
+                // Normal: grüne Farbe mit Pulsieren
+                // int brightness2 = 150 + (int) (Math.cos(animationFrame * 0.2 + i) * 70);
+                int brightness = 150 + (int) (Math.sin(animationFrame * 0.2 + i) * 70);
+                graphics.setForegroundColor(new TextColor.RGB(0, brightness, 0));
+                drawCentered(graphics, titleArt[i], titleY + i);
+            }
             int brightness = 150 + (int) (Math.sin(animationFrame * 0.2 + i) * 70);
             graphics.setForegroundColor(new TextColor.RGB(brightness, brightness, brightness));
             drawCentered(graphics, titleArt[i], titleY + i);
@@ -153,7 +157,7 @@ public class CharacterSelectionScreen extends GameScreen {
         graphics.setBackgroundColor(ScreenManager.BACKGROUND_COLOR);
         graphics.setForegroundColor(TextColor.ANSI.YELLOW);
         String controls = "↑↓ Navigation | ENTER Auswählen | ESC Zurück";
-        drawCentered(graphics, controls, size.getRows() - 1);
+        drawCentered(graphics, controls, size.getRows() - 2);
     }
 
     @Override
@@ -175,16 +179,15 @@ public class CharacterSelectionScreen extends GameScreen {
     // TODO: FALSCHE OPTIONEN, character selection implementieren
     private void executeOption() {
         switch (selectedOption) {
-            case 0 -> // Neues Spiel
+            case 0 -> { // Sword
+                gameManager.setPlayer(new Player(PlayerType.SWORD_FIGHTER));
                 screenManager.switchToScreen("game");
-            case 1 -> { // Sword
             }
-            case 2 -> // Einstellungen
-                screenManager.switchToScreen("settings");
-            case 5 -> // Beenden
-                screenManager.stopRunning();
+            case 1 -> { // Shield
+                gameManager.setPlayer(new Player(PlayerType.SHIELD_FIGHTER));
+                screenManager.switchToScreen("game");
+            }
         }
-        // 
     }
 
     @Override

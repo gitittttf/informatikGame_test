@@ -8,7 +8,6 @@ import com.informatikgame.entities.Enemy;
 import com.informatikgame.entities.Player;
 import com.informatikgame.ui.StoryDatabank;
 import com.informatikgame.world.EnemyType;
-import com.informatikgame.world.PlayerType;
 import com.informatikgame.world.Room;
 import com.informatikgame.world.RoomType;
 import com.informatikgame.world.World;
@@ -37,6 +36,10 @@ import com.informatikgame.world.World;
  * Game Over 4. Raum-Übergang → Wiederholen bis Sieg
  */
 public class GameManager implements FightManager.CombatEventListener {
+
+    public void setPlayer(Player player) {
+        this.player = player;
+    }
 
     /**
      * Event-Listener Interface für UI-Updates
@@ -145,7 +148,7 @@ public class GameManager implements FightManager.CombatEventListener {
     private void initializeGame() {
         // Spieler mit PlayerType erstellen (hier testweise SWORD_FIGHTER)
         // lifeTotal, armourValue, initiative, attack, defense, damage
-        this.player = new Player(PlayerType.SWORD_FIGHTER);
+
         player.getLifeTotal();
         this.fightManager = new FightManager(player);
         this.fightManager.setCombatEventListener(this);  // Set GameManager as combat listener

@@ -178,7 +178,7 @@ public class MainMenuScreen extends GameScreen {
     private void executeOption() {
         switch (selectedOption) {
             case 0 -> // Neues Spiel
-                screenManager.switchToScreen("game");
+                screenManager.switchToScreen("characterSelection");
             case 1 -> {
             }
             case 2 -> // Einstellungen

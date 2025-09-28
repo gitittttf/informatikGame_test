@@ -63,7 +63,6 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
         combatLog.add("=== Willkommen im Dungeon ===");
 
         // GameManager initialisieren und Listener setzen
-        gameManager = new GameManager();
         gameManager.setEventListener(this);
         gameManager.startGame();
     }
