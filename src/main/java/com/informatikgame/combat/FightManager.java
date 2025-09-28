@@ -223,7 +223,7 @@ public class FightManager {
                 }
             }
 
-            // Continue with next action after a brief pause
+            // Continue with next action 
             processNextAction();
         }
     }
