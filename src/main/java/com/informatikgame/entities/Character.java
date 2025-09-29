@@ -50,12 +50,54 @@ public class Character {
         return this.lifeTotal > 0;
     }
 
+    // Listener für Combat Events
+    private CombatEventListener combatEventListener;
+
+    public void setCombatEventListener(CombatEventListener listener) {
+        this.combatEventListener = listener;
+    }
+
+    public interface CombatEventListener {
+
+        void onCombatMessage(String message, CombatMessageType type);
+
+        void onCombatPause(int milliseconds);
+    }
+
+    // Import the message type enum from FightManager
+    public enum CombatMessageType {
+        ROUND_START,
+        PLAYER_ACTION,
+        ENEMY_ACTION,
+        UPGRADE,
+        SPECIAL_MOVE,
+        DAMAGE,
+        DEFENSE,
+        COMBAT_START,
+        COMBAT_END
+    }
+
     //Attack target, Finte und Wuchtschlag Level 0-3 (Finte erschwert Angriff um 1, Verteidigung Gegner um 2, Wuchtschlag erschwert um 2 für +2 Schaden)
     public void attack(Character target, int finte, int wuchtschlag) {
         finte = clamp(finte, 0, this.finteLevel);
         wuchtschlag = clamp(wuchtschlag, 0, this.wuchtschlagLevel);
         int diceRoll = (int) (Math.random() * 19) + 1;
-        System.out.println("");
+
+        // Announce attack start
+        CombatMessageType actionType = this.type.equals("Spieler") ? CombatMessageType.PLAYER_ACTION : CombatMessageType.ENEMY_ACTION;
+        logMessage(this.type + " startet den Angriff!", actionType);
+        pauseCombat(800);
+
+        // Announce special moves
+        if (finte > 0) {
+            logMessage("Versuchte eine Finte (Level " + finte + ") auszuführen...", CombatMessageType.SPECIAL_MOVE);
+            pauseCombat(600);
+        }
+        if (wuchtschlag > 0) {
+            logMessage("Versuchte einen Wuchtschlag (Level " + wuchtschlag + ") auszuführen...", CombatMessageType.SPECIAL_MOVE);
+            pauseCombat(600);
+        }
+
         if (diceRoll <= this.attack - finte - wuchtschlag * 2) {
             int defenseDebuff = 2 * finte;
             int damageBonus = 2 * wuchtschlag;
@@ -65,40 +107,130 @@ public class Character {
                 damageBonus += (int) Math.round(Math.random() * 5 + 1);
             }
 
-            System.out.println(this.type + " greift " + target.type + " erfolgreich für " + (this.damage + damageBonus) + " Schaden an (Finte: " + finte + ", Wuchtschlag: " + wuchtschlag + ").");
+            // Success messages for special moves
+            if (finte > 0) {
+                logMessage("Die Finte hat geklappt! Der Gegner " + target.type + " ist verwirrt!", CombatMessageType.SPECIAL_MOVE);
+                pauseCombat(700);
+            }
+            if (wuchtschlag > 0) {
+                logMessage("Der Wuchtschlag hat geklappt! Zusätzlicher Schaden wird verursacht!", CombatMessageType.SPECIAL_MOVE);
+                pauseCombat(700);
+            }
+
+            logMessage("Greife " + target.type + " an mit " + (this.damage + damageBonus) + " Schaden!", CombatMessageType.DAMAGE);
+            pauseCombat(500);
             target.defense(this.damage + damageBonus, defenseDebuff);
         } else {
-            System.out.println(this.type + " scheiterte " + target.type + " anzugreifen.");
+            // Failed attack messages
+            if (finte > 0 || wuchtschlag > 0) {
+                logMessage("Die Spezialangriffe sind fehlgeschlagen!", CombatMessageType.SPECIAL_MOVE);
+                pauseCombat(600);
+            }
+            logMessage(this.type + " scheiterte " + target.type + " anzugreifen.", actionType);
         }
     }
 
     //Defense dmageTaken und Verteidigungsdebuff durch Finte
     public void defense(int damageTaken, int defenseDebuff) {
         int diceRoll = (int) (Math.random() * 20);
+
+        logMessage(this.type + " versucht zu parieren...", CombatMessageType.DEFENSE);
+        pauseCombat(600);
+
         if (diceRoll <= this.defense - defenseDebuff) {
-            System.out.println(this.type + " parriert erfolgreich.");
+            logMessage(this.type + " parriert erfolgreich!", CombatMessageType.DEFENSE);
             return;
         }
-        this.lifeTotal -= damageTaken - this.armourValue;
-        System.out.println(this.type + " konnte nicht parieren.");
-        System.out.println(this.type + " nimmt " + (damageTaken - this.armourValue) + " Schaden.");
+
+        int actualDamage = Math.max(0, damageTaken - this.armourValue);
+        this.lifeTotal -= actualDamage;
+
+        logMessage(this.type + " konnte nicht parieren!", CombatMessageType.DEFENSE);
+        pauseCombat(400);
+        logMessage(this.type + " nimmt " + actualDamage + " Schaden.", CombatMessageType.DAMAGE);
+    }
+
+    private void logMessage(String message, CombatMessageType type) {
+        if (combatEventListener != null) {
+            combatEventListener.onCombatMessage(message, type);
+        } else {
+            // Fallback to console if no listener
+            System.out.println(message);
+        }
+    }
+
+    private void pauseCombat(int milliseconds) {
+        if (combatEventListener != null) {
+            combatEventListener.onCombatPause(milliseconds);
+        } else {
+            // Fallback to thread sleep
+            try {
+                Thread.sleep(milliseconds);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     //Upgrade Character
     public void upgrade(int lifeTotal, int maxLife, int armourValue, int initiative, int attack, int defense, int damage, int finteLevel, int wuchtschlagLevel) {
-        this.maxLife += maxLife;
-        this.lifeTotal += lifeTotal;
-        this.armourValue += armourValue;
-        this.initiative += initiative;
-        this.attack += attack;
-        this.defense += defense;
-        this.damage += damage;
-        this.finteLevel += finteLevel;
-        this.wuchtschlagLevel += wuchtschlagLevel;
+        StringBuilder upgradeMessage = new StringBuilder(this.type + " erhält Verbesserungen: ");
+        boolean hasUpgrade = false;
+
+        if (maxLife > 0) {
+            this.maxLife += maxLife;
+            upgradeMessage.append("Max HP +").append(maxLife).append(" ");
+            hasUpgrade = true;
+        }
+        if (lifeTotal > 0) {
+            this.lifeTotal += lifeTotal;
+            upgradeMessage.append("HP +").append(lifeTotal).append(" ");
+            hasUpgrade = true;
+        }
+        if (armourValue > 0) {
+            this.armourValue += armourValue;
+            upgradeMessage.append("Rüstung +").append(armourValue).append(" ");
+            hasUpgrade = true;
+        }
+        if (initiative > 0) {
+            this.initiative += initiative;
+            upgradeMessage.append("Initiative +").append(initiative).append(" ");
+            hasUpgrade = true;
+        }
+        if (attack > 0) {
+            this.attack += attack;
+            upgradeMessage.append("Angriff +").append(attack).append(" ");
+            hasUpgrade = true;
+        }
+        if (defense > 0) {
+            this.defense += defense;
+            upgradeMessage.append("Verteidigung +").append(defense).append(" ");
+            hasUpgrade = true;
+        }
+        if (damage > 0) {
+            this.damage += damage;
+            upgradeMessage.append("Schaden +").append(damage).append(" ");
+            hasUpgrade = true;
+        }
+        if (finteLevel > 0) {
+            this.finteLevel += finteLevel;
+            upgradeMessage.append("Finte +").append(finteLevel).append(" ");
+            hasUpgrade = true;
+        }
+        if (wuchtschlagLevel > 0) {
+            this.wuchtschlagLevel += wuchtschlagLevel;
+            upgradeMessage.append("Wuchtschlag +").append(wuchtschlagLevel).append(" ");
+            hasUpgrade = true;
+        }
+
+        if (hasUpgrade) {
+            logMessage(upgradeMessage.toString().trim(), CombatMessageType.UPGRADE);
+        }
     }
 
     //Upgrade Character with Upgrade Type
     public void upgrade(UpgradeType upgradeType) {
+        logMessage(this.type + " erhält das Upgrade: " + upgradeType.name(), CombatMessageType.UPGRADE);
         upgrade(upgradeType.lifeTotal, upgradeType.maxLife, upgradeType.armourValue, upgradeType.initiative, upgradeType.attack, upgradeType.defense, upgradeType.damage, upgradeType.finteLevel, upgradeType.wuchtschlagLevel);
     }
 

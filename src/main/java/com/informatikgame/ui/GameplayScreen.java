@@ -9,6 +9,7 @@ import com.googlecode.lanterna.TextColor;
 import com.googlecode.lanterna.graphics.TextGraphics;
 import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
+import com.informatikgame.combat.FightManager;
 import com.informatikgame.core.GameManager;
 import com.informatikgame.entities.Enemy;
 
@@ -71,13 +72,44 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
         gameManager.startGame();
     }
 
+    // Combat message with color information
+    private static class ColoredCombatMessage {
+
+        public final String message;
+        public final FightManager.CombatMessageType type;
+
+        public ColoredCombatMessage(String message, FightManager.CombatMessageType type) {
+            this.message = message;
+            this.type = type;
+        }
+    }
+
+    private List<ColoredCombatMessage> coloredCombatLog = new ArrayList<>();
+
     // === GameEventListener Implementation ===
     @Override
     public void onCombatLogUpdate(String message) {
         combatLog.add(message);
+        coloredCombatLog.add(new ColoredCombatMessage(message, FightManager.CombatMessageType.PLAYER_ACTION));
         // Nur die letzten 15 Nachrichten behalten
         if (combatLog.size() > 15) {
             combatLog.remove(0);
+        }
+        if (coloredCombatLog.size() > 15) {
+            coloredCombatLog.remove(0);
+        }
+    }
+
+    // New method for colored combat messages
+    public void onCombatMessage(String message, FightManager.CombatMessageType messageType) {
+        combatLog.add(message);
+        coloredCombatLog.add(new ColoredCombatMessage(message, messageType));
+        // Nur die letzten 15 Nachrichten behalten
+        if (combatLog.size() > 15) {
+            combatLog.remove(0);
+        }
+        if (coloredCombatLog.size() > 15) {
+            coloredCombatLog.remove(0);
         }
     }
 
@@ -89,7 +121,9 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
         this.currentRoomDescription = gameManager.getRoomDescription();
         currentState = UIState.EXPLORATION;
 
-        combatLog.add(">>> Betreten: " + roomName);
+        String message = ">>> Betreten: " + roomName;
+        combatLog.add(message);
+        coloredCombatLog.add(new ColoredCombatMessage(message, FightManager.CombatMessageType.ROUND_START));
     }
 
     @Override
@@ -120,7 +154,9 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
         inCombat = false;
         if (won) {
             currentState = UIState.ROOM_TRANSITION;
-            combatLog.add(">>> Kampf gewonnen!");
+            String message = ">>> Kampf gewonnen!";
+            combatLog.add(message);
+            coloredCombatLog.add(new ColoredCombatMessage(message, FightManager.CombatMessageType.COMBAT_END));
         }
     }
 
@@ -757,18 +793,47 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
         graphics.setForegroundColor(TextColor.ANSI.CYAN);
         graphics.putString(new TerminalPosition(x + 2, y), "[ KAMPF-LOG ]");
 
-        // Display recent combat log messages
-        graphics.setForegroundColor(TextColor.ANSI.WHITE);
+        // Display recent combat log messages with color coding
         int logStartY = y + 1;
         int maxLines = height - 2;
 
-        int startIndex = Math.max(0, combatLog.size() - maxLines);
-        for (int i = startIndex; i < combatLog.size(); i++) {
-            String message = combatLog.get(i);
+        int startIndex = Math.max(0, coloredCombatLog.size() - maxLines);
+        for (int i = startIndex; i < coloredCombatLog.size(); i++) {
+            ColoredCombatMessage coloredMessage = coloredCombatLog.get(i);
+            String message = coloredMessage.message;
             if (message.length() > width - 4) {
                 message = message.substring(0, width - 7) + "...";
             }
+
+            // Set color based on message type
+            TextColor messageColor = getColorForMessageType(coloredMessage.type);
+            graphics.setForegroundColor(messageColor);
             graphics.putString(new TerminalPosition(x + 2, logStartY + (i - startIndex)), message);
+        }
+    }
+
+    private TextColor getColorForMessageType(FightManager.CombatMessageType type) {
+        switch (type) {
+            case ROUND_START:
+                return TextColor.ANSI.CYAN;
+            case PLAYER_ACTION:
+                return TextColor.ANSI.GREEN;
+            case ENEMY_ACTION:
+                return TextColor.ANSI.RED;
+            case UPGRADE:
+                return TextColor.ANSI.MAGENTA;
+            case SPECIAL_MOVE:
+                return TextColor.ANSI.YELLOW;
+            case DAMAGE:
+                return new TextColor.RGB(255, 140, 0); // Orange
+            case DEFENSE:
+                return TextColor.ANSI.BLUE;
+            case COMBAT_START:
+                return new TextColor.RGB(255, 215, 0); // Gold
+            case COMBAT_END:
+                return new TextColor.RGB(0, 255, 127); // Spring green
+            default:
+                return TextColor.ANSI.WHITE;
         }
     }
 
