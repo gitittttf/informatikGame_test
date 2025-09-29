@@ -376,7 +376,7 @@ public class ScreenManager {
 
                 // Verify fullscreen actually worked
                 if (gd.getFullScreenWindow() == originalFrame) {
-                    System.out.println("SUCCESS: CENTERED FULLSCREEN activated on " + gd.getIDstring()
+                    System.out.println("SUCCESS: FULLSCREEN activated on " + gd.getIDstring()
                             + " - Resolution: " + screenWidth + "x" + screenHeight
                             + ", Font: " + fontSize + ", Game: " + terminalWidth + "x" + terminalHeight + " centered at (" + centerX + "," + centerY + ")"
                             + ", Display: " + (selectedDisplayId != null ? selectedDisplayId : "Default"));
