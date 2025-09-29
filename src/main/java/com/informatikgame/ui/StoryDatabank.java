@@ -33,7 +33,7 @@ public enum StoryDatabank {
         Im schwachen Licht erkennst du drei Gestalten: zwei Mini-Zombies und ein mutierter Wissenschaftler. Bereite dich auf den Kampf vor!
     """),
     LIBRARY_ROOM_END("""
-        Nachdem du die Gegner besiegt hast, entdeckst du Hinweise in einem zerfallenen Buch, die dir neue Kampftechniken lehren. (+1 Finte-Level)
+        Nachdem du die Gegner besiegt hast, entdeckst du Hinweise in einem zerfallenen Buch, die dir neue Kampftechniken lehren. (+1 Finte-Level und +1 Wuchtschlag-Level)
     """),
     // ===================== DINING HALL =====================
     DINING_HALL("""
@@ -41,7 +41,7 @@ public enum StoryDatabank {
         Kein Rückzug möglich, bereite dich auf den Kampf vor!
     """),
     DINING_HALL_END("""
-        Nach dem erbitterten Kampf spürst du, wie deine Angriffe präziser und stärker werden. (+1 Attack)
+        Nach dem erbitterten Kampf spürst du, wie deine Angriffe präziser und stärker werden. (+2 Attack)
     """),
     // ===================== LABORATORY =====================
     LABORATORY("""
@@ -58,14 +58,6 @@ public enum StoryDatabank {
     """),
     CORRIDOR_END("""
         Nach dem Kampf findest du ein altes Schutzschild, das deine Rüstung verstärkt. (+3 Armour)
-    """),
-    // ===================== PANTRY 2 =====================
-    PANTRY_2("""
-        Eine weitere Vorratskammer. Die Luft ist stickig, das Licht flackert nervös. Zwei Mini-Zombies stürmen auf dich zu. 
-        Du musst dich durch den Raum kämpfen!
-    """),
-    PANTRY_2_END("""
-        Du hast die Mini-Zombies besiegt und bist bereit für den nächsten Abschnitt.
     """),
     // ===================== FINAL ROOM =====================
     FINAL_ROOM("""
