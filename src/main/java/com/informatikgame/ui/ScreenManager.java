@@ -74,7 +74,7 @@ public class ScreenManager {
 
     private DisplayMode currentDisplayMode = DisplayMode.FULLSCREEN;
     private ScalingMode currentScalingMode = ScalingMode.NORMAL;
-    private String selectedDisplayId = null; // null means default display
+    private String selectedDisplayId = null; // null = default display
     private JFrame customFrame;
 
     // Display information class
@@ -108,7 +108,7 @@ public class ScreenManager {
     private final int MAX_FONT_SIZE = 32;
     private int resizeCheckCounter = 3; // Check every N frames
 
-    // Farb-Theme für das Spiel
+    // Farbtheme für das Spiel
     public static final TextColor BACKGROUND_COLOR = TextColor.ANSI.BLACK;
     public static final TextColor PRIMARY_COLOR = TextColor.ANSI.GREEN;
     public static final TextColor SECONDARY_COLOR = TextColor.ANSI.CYAN;
@@ -250,14 +250,14 @@ public class ScreenManager {
         fontSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, fontSize));
         currentFontSize = fontSize;
 
-        // Terminal-Factory setup
+        // Terminalfactory setup
         DefaultTerminalFactory terminalFactory = new DefaultTerminalFactory();
         terminalFactory.setPreferTerminalEmulator(true);
 
         TerminalSize initialSize = new TerminalSize(TARGET_COLUMNS, TARGET_ROWS);
         terminalFactory.setInitialTerminalSize(initialSize);
 
-        // Font-Konfiguration mit berechneter Größe
+        // Fontconf mit berechneter Größe
         Font terminalFont = new Font(Font.MONOSPACED, Font.PLAIN, fontSize);
         SwingTerminalFontConfiguration fontConfig = SwingTerminalFontConfiguration.newInstance(terminalFont);
         terminalFactory.setTerminalEmulatorFontConfiguration(fontConfig);
@@ -320,7 +320,7 @@ public class ScreenManager {
                 int centerX = (screenWidth - terminalWidth) / 2;
                 int centerY = (screenHeight - terminalHeight) / 2;
 
-                // CRITICAL: Dispose first, then configure as undecorated
+                // Dispose first, then configure as undecorated
                 originalFrame.dispose();
                 originalFrame.setUndecorated(true);
                 originalFrame.setResizable(false);
