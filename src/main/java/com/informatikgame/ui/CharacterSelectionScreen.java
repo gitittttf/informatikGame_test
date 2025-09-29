@@ -69,7 +69,7 @@ public class CharacterSelectionScreen extends GameScreen {
             y += speedY;
             x += speedX;
             TerminalSize size = screenManager.getSize();
-            if (y >= size.getRows()) {
+            if (y >= size.getRows() || x >= size.getColumns()) {
                 reset();
             }
         }
