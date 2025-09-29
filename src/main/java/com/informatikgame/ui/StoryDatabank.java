@@ -84,6 +84,6 @@ public enum StoryDatabank {
     }
 
     public static String getStory(StoryDatabank story) {
-        return story.toString();
+        return story.story;
     }
 }

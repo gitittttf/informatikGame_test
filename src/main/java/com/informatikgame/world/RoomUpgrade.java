@@ -7,7 +7,7 @@ package com.informatikgame.world;
 public enum RoomUpgrade {
     INTRO_ROOM_UPGRADE(UpgradeType.LIFE_UPGRADE), // +5 HP
     FLOOR_ROOM_UPGRADE(UpgradeType.LIFE_UPGRADE), // +5 HP
-    PANTRY_1_UPGRADE(UpgradeType.DAMAGE_UPGRADE), // +2 Damage + HP // TODO
+    PANTRY_1_UPGRADE(UpgradeType.PANTRY_COMPOUND_UPGRADE), // +2 Damage und +5 HP
     LIBRARY_ROOM_UPGRADE(UpgradeType.FINTE_SKILL_UPGRADE), // +1 Fintelevel
     DINING_HALL_UPGRADE(UpgradeType.ATTACK_UPGRADE), // +1 Attack
     LABORATORY_UPGRADE(null), // Kein upgrade

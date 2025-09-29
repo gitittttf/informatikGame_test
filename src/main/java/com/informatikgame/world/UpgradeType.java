@@ -7,7 +7,8 @@ public enum UpgradeType {
     DAMAGE_UPGRADE(0, 0, 0, 0, 0, 0, 2, 0, 0), // +2 Damage
     FINTE_SKILL_UPGRADE(0, 0, 0, 0, 0, 0, 0, 1, 0), // +1 Finte-Level
     ARMOUR_UPGRADE(0, 0, 3, 0, 0, 0, 0, 0, 0), // +3 Armour
-    ATTACK_UPGRADE(0, 0, 0, 0, 1, 0, 0, 0, 0);         // +1 Attack
+    ATTACK_UPGRADE(0, 0, 0, 0, 1, 0, 0, 0, 0), // +1 Attack
+    PANTRY_COMPOUND_UPGRADE(5, 5, 0, 0, 0, 0, 2, 0, 0); // +5 HP und +2 Damage für PANTRY_1
 
     public int maxLife;
     public int lifeTotal;

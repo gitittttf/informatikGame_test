@@ -554,9 +554,7 @@ public class GameManager implements FightManager.CombatEventListener {
             if (roomUpgrade != null && roomUpgrade.getUpgradeType() != null) {
                 UpgradeType upgradeType = roomUpgrade.getUpgradeType();
                 player.upgrade(upgradeType);
-
-                // Notify the UI about health change if the upgrade affects health
-                if (upgradeType == UpgradeType.LIFE_UPGRADE && eventListener != null) {
+                if (eventListener != null) {
                     eventListener.onPlayerHealthChange(player.getLifeTotal(), player.getMaxLife());
                 }
 
