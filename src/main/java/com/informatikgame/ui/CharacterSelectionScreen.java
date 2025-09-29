@@ -39,7 +39,8 @@ public class CharacterSelectionScreen extends GameScreen {
         int x, y;
         char symbol;
         TextColor color;
-        int speed;
+        int speedY;
+        int speedX;
 
         @SuppressWarnings("OverridableMethodCallInConstructor")
         Particle() {
@@ -50,21 +51,23 @@ public class CharacterSelectionScreen extends GameScreen {
             TerminalSize size = screenManager.getSize();
             // Startpositionen
             x = (int) (Math.random() * size.getColumns());
-            y = 0;
+            y = (int) (Math.random() * size.getRows());
             // Geschwindigkeit
-            speed = 1 + (int) (Math.random() * 0.5);
+            speedY = 1 + (int) (Math.random() * 0.2);
+            speedX = 1 + (int) (Math.random() * 0.2);
 
             // Symbole
             char[] symbols = {'*', '·', '•'};
             symbol = symbols[(int) (Math.random() * symbols.length)];
 
             // Farbe
-            int green = 50 + (int) (Math.random() * 150);
-            color = new TextColor.RGB(0, green, 0);
+            int white = 50 + (int) (Math.random() * 150);
+            color = new TextColor.RGB(white, white, white);
         }
 
         void update() {
-            y += speed;
+            y += speedY;
+            x += speedX;
             TerminalSize size = screenManager.getSize();
             if (y >= size.getRows()) {
                 reset();
@@ -75,7 +78,7 @@ public class CharacterSelectionScreen extends GameScreen {
     @Override
     public void initialize() {
         // Initialisiere Partikelsystem
-        particles = new Particle[30];
+        particles = new Particle[50];
         for (int i = 0; i < particles.length; i++) {
             particles[i] = new Particle();
             // Verteile über den Bildschirm
@@ -100,7 +103,7 @@ public class CharacterSelectionScreen extends GameScreen {
             if (animationFrame % 30 == 0 && Math.random() < 0.1) {
                 // Glitch: verschiebe Zeile leicht
                 int offset = (int) (Math.random() * 3) - 1;
-                graphics.setForegroundColor(new TextColor.RGB(153, 153, 0)); // TODO richtige farbe finden
+                graphics.setForegroundColor(new TextColor.RGB(153, 153, 0));
                 drawCentered(graphics, titleArt[i], titleY + i + offset);
             } else {
                 // Normal: grüne Farbe mit Pulsieren
