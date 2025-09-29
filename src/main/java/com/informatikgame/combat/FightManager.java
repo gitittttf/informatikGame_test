@@ -105,6 +105,15 @@ public class FightManager {
         COMBAT_END      // For combat end
     }
 
+    /**
+     * Types of attacks
+     */
+    public enum AttackType {
+        NORMAL,
+        FINTE,
+        WUCHTSCHLAG
+    }
+
     private Player player;
     private ArrayList<Enemy> enemiesLeftToRight;
     private CombatEventListener eventListener;
@@ -332,6 +341,21 @@ public class FightManager {
 
         waitingForPlayerAction = false;
         processNextAction();
+    }
+
+    public void executePlayerAction(int targetEnemyIndex, AttackType attackType) {
+        int finteLevel = 0;
+        int wuchtschlagLevel = 0;
+
+        switch (attackType) {
+            case FINTE ->
+                finteLevel = player.getFinteLevel(); // Uses PlayerType's value (3)
+            case WUCHTSCHLAG ->
+                wuchtschlagLevel = player.getWuchtschlagLevel(); // Uses PlayerType's value (3)
+            case NORMAL -> {
+            }
+        }
+        executePlayerAction(targetEnemyIndex, finteLevel, wuchtschlagLevel);
     }
 
     private void endFight() {

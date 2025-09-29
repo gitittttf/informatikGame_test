@@ -620,13 +620,12 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
     // Combat input state
     private enum CombatInputState {
         SELECTING_ENEMY,
-        SELECTING_FINTE,
-        SELECTING_WUCHTSCHLAG
+        SELECTING_ATTACK_TYPE;
     }
+
     private CombatInputState combatInputState = CombatInputState.SELECTING_ENEMY;
     private int selectedEnemyIndex = 0;
-    private int selectedFinteLevel = 0;
-    private int selectedWuchtschlagLevel = 0;
+    private FightManager.AttackType selectedAttackType = FightManager.AttackType.NORMAL;
 
     private void handleCombatInput(KeyStroke keyStroke) {
         if (currentEnemies.length == 0) {
@@ -650,58 +649,55 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
                         // Invalid input, ignore
                     }
                 } else if (keyStroke.getKeyType() == KeyType.Enter) {
-                    combatInputState = CombatInputState.SELECTING_FINTE;
-                    selectedFinteLevel = 0;
+                    combatInputState = CombatInputState.SELECTING_ATTACK_TYPE;
+                    selectedAttackType = FightManager.AttackType.NORMAL;
                 }
             }
-            case SELECTING_FINTE -> {
-                int maxFinte = gameManager.getPlayer().getFinteLevel();
-                if (keyStroke.getKeyType() == KeyType.ArrowLeft && selectedFinteLevel > 0) {
-                    selectedFinteLevel--;
-                } else if (keyStroke.getKeyType() == KeyType.ArrowRight && selectedFinteLevel < maxFinte) {
-                    selectedFinteLevel++;
-                } else if (keyStroke.getKeyType() == KeyType.Character) {
-                    // Allow number key selection
-                    try {
-                        int level = Character.getNumericValue(keyStroke.getCharacter());
-                        if (level >= 0 && level <= maxFinte) {
-                            selectedFinteLevel = level;
+            case SELECTING_ATTACK_TYPE -> {
+                if (null != keyStroke.getKeyType()) {
+                    switch (keyStroke.getKeyType()) {
+                        case ArrowLeft -> // Cycle backwards through attack types
+                            selectedAttackType = switch (selectedAttackType) {
+                                case NORMAL ->
+                                    FightManager.AttackType.WUCHTSCHLAG;
+                                case FINTE ->
+                                    FightManager.AttackType.NORMAL;
+                                case WUCHTSCHLAG ->
+                                    FightManager.AttackType.FINTE;
+                            };
+                        case ArrowRight -> // Cycle forwards through attack types
+                            selectedAttackType = switch (selectedAttackType) {
+                                case NORMAL ->
+                                    FightManager.AttackType.FINTE;
+                                case FINTE ->
+                                    FightManager.AttackType.WUCHTSCHLAG;
+                                case WUCHTSCHLAG ->
+                                    FightManager.AttackType.NORMAL;
+                            };
+                        case Character -> {
+                            // Allow number key selection: 1=Normal, 2=Finte, 3=Wuchtschlag
+                            char ch = keyStroke.getCharacter();
+                            switch (ch) {
+                                case '1' ->
+                                    selectedAttackType = FightManager.AttackType.NORMAL;
+                                case '2' ->
+                                    selectedAttackType = FightManager.AttackType.FINTE;
+                                case '3' ->
+                                    selectedAttackType = FightManager.AttackType.WUCHTSCHLAG;
+                            }
                         }
-                    } catch (Exception e) {
-                        // Invalid input, ignore
-                    }
-                } else if (keyStroke.getKeyType() == KeyType.Enter) {
-                    combatInputState = CombatInputState.SELECTING_WUCHTSCHLAG;
-                    selectedWuchtschlagLevel = 0;
-                } else if (keyStroke.getKeyType() == KeyType.Escape) {
-                    combatInputState = CombatInputState.SELECTING_ENEMY;
-                }
-            }
-            case SELECTING_WUCHTSCHLAG -> {
-                int maxWuchtschlag = gameManager.getPlayer().getWuchtschlagLevel();
-                if (keyStroke.getKeyType() == KeyType.ArrowLeft && selectedWuchtschlagLevel > 0) {
-                    selectedWuchtschlagLevel--;
-                } else if (keyStroke.getKeyType() == KeyType.ArrowRight && selectedWuchtschlagLevel < maxWuchtschlag) {
-                    selectedWuchtschlagLevel++;
-                } else if (keyStroke.getKeyType() == KeyType.Character) {
-                    // Allow number key selection
-                    try {
-                        int level = Character.getNumericValue(keyStroke.getCharacter());
-                        if (level >= 0 && level <= maxWuchtschlag) {
-                            selectedWuchtschlagLevel = level;
+                        case Enter -> {
+                            // Execute the combat action
+                            gameManager.executeCombatAction(selectedEnemyIndex, selectedAttackType);
+                            combatInputState = CombatInputState.SELECTING_ENEMY;
+                            selectedEnemyIndex = 0;
+                            selectedAttackType = FightManager.AttackType.NORMAL;
                         }
-                    } catch (Exception e) {
-                        // Invalid input, ignore
+                        case Escape ->
+                            combatInputState = CombatInputState.SELECTING_ENEMY;
+                        default -> {
+                        }
                     }
-                } else if (keyStroke.getKeyType() == KeyType.Enter) {
-                    // Execute the combat action
-                    gameManager.executeCombatAction(selectedEnemyIndex, selectedFinteLevel, selectedWuchtschlagLevel);
-                    combatInputState = CombatInputState.SELECTING_ENEMY;
-                    selectedEnemyIndex = 0;
-                    selectedFinteLevel = 0;
-                    selectedWuchtschlagLevel = 0;
-                } else if (keyStroke.getKeyType() == KeyType.Escape) {
-                    combatInputState = CombatInputState.SELECTING_FINTE;
                 }
             }
         }
@@ -740,25 +736,24 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
                     graphics.putString(new TerminalPosition(x + 2, instructionY + 1), "← → oder 1-" + currentEnemies.length);
                     graphics.putString(new TerminalPosition(x + 2, instructionY + 2), "ENTER: Weiter");
                 }
-                case SELECTING_FINTE -> {
-                    graphics.putString(new TerminalPosition(x + 2, instructionY), "Finte Level:");
-                    graphics.putString(new TerminalPosition(x + 2, instructionY + 1), "← → oder 0-" + gameManager.getPlayer().getFinteLevel());
-                    graphics.putString(new TerminalPosition(x + 2, instructionY + 2), "ENTER: Weiter");
-                    graphics.putString(new TerminalPosition(x + 2, instructionY + 3), "ESC: Zurück");
-                }
-                case SELECTING_WUCHTSCHLAG -> {
-                    graphics.putString(new TerminalPosition(x + 2, instructionY), "Wuchtschlag Level:");
-                    graphics.putString(new TerminalPosition(x + 2, instructionY + 1), "← → oder 0-" + gameManager.getPlayer().getWuchtschlagLevel());
-                    graphics.putString(new TerminalPosition(x + 2, instructionY + 2), "ENTER: Angriff!");
-                    graphics.putString(new TerminalPosition(x + 2, instructionY + 3), "ESC: Zurück");
+                case SELECTING_ATTACK_TYPE -> {
+                    graphics.putString(new TerminalPosition(x + 2, instructionY), "Wähle Angriff:");
+                    graphics.putString(new TerminalPosition(x + 2, instructionY + 1), "← → oder 1-3");
+                    graphics.putString(new TerminalPosition(x + 2, instructionY + 2), "1=Normal 2=Finte 3=Wuchtschlag");
+                    graphics.putString(new TerminalPosition(x + 2, instructionY + 3), "ENTER: Angriff! ESC: Zurück");
+
+                    // Show current selection
+                    String attackName = switch (selectedAttackType) {
+                        case NORMAL ->
+                            "Normal";
+                        case FINTE ->
+                            "Finte";
+                        case WUCHTSCHLAG ->
+                            "Wuchtschlag";
+                    };
+                    graphics.putString(new TerminalPosition(x + 2, instructionY + 4), "Gewählt: " + attackName);
                 }
             }
-
-            // Show current selection
-            graphics.setForegroundColor(TextColor.ANSI.CYAN);
-            graphics.putString(new TerminalPosition(x + 2, instructionY + 5),
-                    String.format("Ziel: %d, Finte: %d, Wuchtschlag: %d",
-                            selectedEnemyIndex + 1, selectedFinteLevel, selectedWuchtschlagLevel));
         }
     }
 
