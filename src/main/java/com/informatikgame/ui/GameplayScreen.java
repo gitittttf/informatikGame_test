@@ -203,9 +203,9 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
                 int mainAreaY = 3;
                 int columnWidth = size.getColumns() / 3;
 
-                drawPlayerPanel(graphics, 0, mainAreaY, columnWidth, size.getRows() - mainAreaY - 5);
-                drawGameArea(graphics, columnWidth, mainAreaY, columnWidth, size.getRows() - mainAreaY - 5);
-                drawInfoPanel(graphics, columnWidth * 2, mainAreaY, columnWidth, size.getRows() - mainAreaY - 5);
+                drawPlayerPanel(graphics, 0, mainAreaY, columnWidth, size.getRows() - mainAreaY - 15);
+                drawGameArea(graphics, columnWidth, mainAreaY, columnWidth, size.getRows() - mainAreaY - 15);
+                drawInfoPanel(graphics, columnWidth * 2, mainAreaY, columnWidth, size.getRows() - mainAreaY - 15);
                 drawCombatLog(graphics, 0, size.getRows() - 15, size.getColumns(), 15); // TODO
             }
         }

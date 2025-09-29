@@ -120,11 +120,6 @@ public class FightManager {
         // Ui über kampf start benachrichtigen
         if (eventListener != null) {
             eventListener.onCombatMessage("Der Kampf beginnt!");
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             eventListener.onEnemyHealthUpdate(enemiesLeftToRight.toArray(new Enemy[0]));
         }
 
@@ -140,11 +135,6 @@ public class FightManager {
 
         if (eventListener != null) {
             eventListener.onRoundStart(currentRound);
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             eventListener.onPlayerHealthUpdate(player.getLifeTotal(), playerMaxHP);
         }
 
@@ -192,11 +182,6 @@ public class FightManager {
             Enemy enemy = (Enemy) actingFighter;
             if (eventListener != null) {
                 eventListener.onEnemyTurn(enemy);
-                try {
-                    Thread.sleep(150);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
             }
 
             // Enemy attacks with random abilities
@@ -205,22 +190,12 @@ public class FightManager {
 
             if (eventListener != null) {
                 eventListener.onCombatMessage(enemy.getType() + " greift an!");
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
             }
 
             enemy.attack(this.player, randomNumberFinte, randomNumberWuchtschlag);
 
             if (eventListener != null) {
                 eventListener.onPlayerHealthUpdate(player.getLifeTotal(), playerMaxHP);
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
             }
 
             // Continue with next action 

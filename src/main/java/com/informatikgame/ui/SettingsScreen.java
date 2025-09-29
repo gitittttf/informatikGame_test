@@ -15,7 +15,7 @@ public class SettingsScreen extends GameScreen {
 
     // Use ScreenManager enums to avoid type conflicts
     private static final String[] DISPLAY_MODE_NAMES = {
-        "Echter Vollbildmodus", "Fenstermodus"
+        "Vollbildmodus", "Fenstermodus"
     };
 
     private static final String[] SCALING_MODE_NAMES = {
