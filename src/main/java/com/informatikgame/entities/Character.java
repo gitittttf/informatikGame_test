@@ -59,9 +59,7 @@ public class Character {
 
     public interface CombatEventListener {
 
-        void onCombatMessage(String message, CombatMessageType type);
-
-        void onCombatPause(int milliseconds);
+        void onCombatMessage(String message, CombatMessageType type, long delayMs);
     }
 
     // Import the message type enum from FightManager
@@ -83,19 +81,21 @@ public class Character {
         wuchtschlag = clamp(wuchtschlag, 0, this.wuchtschlagLevel);
         int diceRoll = (int) (Math.random() * 19) + 1;
 
+        long currentDelay = 0;
+
         // Announce attack start
         CombatMessageType actionType = this.type.equals("Spieler") ? CombatMessageType.PLAYER_ACTION : CombatMessageType.ENEMY_ACTION;
-        logMessage(this.type + " startet den Angriff!", actionType);
-        pauseCombat(800);
+        logMessageWithDelay(this.type + " startet den Angriff!", actionType, currentDelay);
+        currentDelay += 800;
 
         // Announce special moves
         if (finte > 0) {
-            logMessage("Versuchte eine Finte (Level " + finte + ") auszuführen...", CombatMessageType.SPECIAL_MOVE);
-            pauseCombat(600);
+            logMessageWithDelay("Versuchte eine Finte (Level " + finte + ") auszuführen...", CombatMessageType.SPECIAL_MOVE, currentDelay);
+            currentDelay += 600;
         }
         if (wuchtschlag > 0) {
-            logMessage("Versuchte einen Wuchtschlag (Level " + wuchtschlag + ") auszuführen...", CombatMessageType.SPECIAL_MOVE);
-            pauseCombat(600);
+            logMessageWithDelay("Versuchte einen Wuchtschlag (Level " + wuchtschlag + ") auszuführen...", CombatMessageType.SPECIAL_MOVE, currentDelay);
+            currentDelay += 600;
         }
 
         if (diceRoll <= this.attack - finte - wuchtschlag * 2) {
@@ -109,66 +109,59 @@ public class Character {
 
             // Success messages for special moves
             if (finte > 0) {
-                logMessage("Die Finte hat geklappt! Der Gegner " + target.type + " ist verwirrt!", CombatMessageType.SPECIAL_MOVE);
-                pauseCombat(700);
+                logMessageWithDelay("Die Finte hat geklappt! Der Gegner " + target.type + " ist verwirrt!", CombatMessageType.SPECIAL_MOVE, currentDelay);
+                currentDelay += 700;
             }
             if (wuchtschlag > 0) {
-                logMessage("Der Wuchtschlag hat geklappt! Zusätzlicher Schaden wird verursacht!", CombatMessageType.SPECIAL_MOVE);
-                pauseCombat(700);
+                logMessageWithDelay("Der Wuchtschlag hat geklappt! Zusätzlicher Schaden wird verursacht!", CombatMessageType.SPECIAL_MOVE, currentDelay);
+                currentDelay += 700;
             }
 
-            logMessage("Greife " + target.type + " an mit " + (this.damage + damageBonus) + " Schaden!", CombatMessageType.DAMAGE);
-            pauseCombat(500);
-            target.defense(this.damage + damageBonus, defenseDebuff);
+            logMessageWithDelay("Greife " + target.type + " an mit " + (this.damage + damageBonus) + " Schaden!", CombatMessageType.DAMAGE, currentDelay);
+            currentDelay += 500;
+            target.defense(this.damage + damageBonus, defenseDebuff, currentDelay);
         } else {
             // Failed attack messages
             if (finte > 0 || wuchtschlag > 0) {
-                logMessage("Die Spezialangriffe sind fehlgeschlagen!", CombatMessageType.SPECIAL_MOVE);
-                pauseCombat(600);
+                logMessageWithDelay("Die Spezialangriffe sind fehlgeschlagen!", CombatMessageType.SPECIAL_MOVE, currentDelay);
+                currentDelay += 600;
             }
-            logMessage(this.type + " scheiterte " + target.type + " anzugreifen.", actionType);
+            logMessageWithDelay(this.type + " scheiterte " + target.type + " anzugreifen.", actionType, currentDelay);
         }
     }
 
     //Defense dmageTaken und Verteidigungsdebuff durch Finte
     public void defense(int damageTaken, int defenseDebuff) {
+        defense(damageTaken, defenseDebuff, 0);
+    }
+
+    //Defense with delay parameter for sequencing
+    public void defense(int damageTaken, int defenseDebuff, long startDelay) {
         int diceRoll = (int) (Math.random() * 20);
 
-        logMessage(this.type + " versucht zu parieren...", CombatMessageType.DEFENSE);
-        pauseCombat(600);
+        long currentDelay = startDelay;
+        logMessageWithDelay(this.type + " versucht zu parieren...", CombatMessageType.DEFENSE, currentDelay);
+        currentDelay += 600;
 
         if (diceRoll <= this.defense - defenseDebuff) {
-            logMessage(this.type + " parriert erfolgreich!", CombatMessageType.DEFENSE);
+            logMessageWithDelay(this.type + " parriert erfolgreich!", CombatMessageType.DEFENSE, currentDelay);
             return;
         }
 
         int actualDamage = Math.max(0, damageTaken - this.armourValue);
         this.lifeTotal -= actualDamage;
 
-        logMessage(this.type + " konnte nicht parieren!", CombatMessageType.DEFENSE);
-        pauseCombat(400);
-        logMessage(this.type + " nimmt " + actualDamage + " Schaden.", CombatMessageType.DAMAGE);
+        logMessageWithDelay(this.type + " konnte nicht parieren!", CombatMessageType.DEFENSE, currentDelay);
+        currentDelay += 400;
+        logMessageWithDelay(this.type + " nimmt " + actualDamage + " Schaden.", CombatMessageType.DAMAGE, currentDelay);
     }
 
-    private void logMessage(String message, CombatMessageType type) {
+    private void logMessageWithDelay(String message, CombatMessageType type, long delayMs) {
         if (combatEventListener != null) {
-            combatEventListener.onCombatMessage(message, type);
+            combatEventListener.onCombatMessage(message, type, delayMs);
         } else {
             // Fallback to console if no listener
             System.out.println(message);
-        }
-    }
-
-    private void pauseCombat(int milliseconds) {
-        if (combatEventListener != null) {
-            combatEventListener.onCombatPause(milliseconds);
-        } else {
-            // Fallback to thread sleep
-            try {
-                Thread.sleep(milliseconds);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
         }
     }
 
@@ -224,13 +217,13 @@ public class Character {
         }
 
         if (hasUpgrade) {
-            logMessage(upgradeMessage.toString().trim(), CombatMessageType.UPGRADE);
+            logMessageWithDelay(upgradeMessage.toString().trim(), CombatMessageType.UPGRADE, 0);
         }
     }
 
     //Upgrade Character with Upgrade Type
     public void upgrade(UpgradeType upgradeType) {
-        logMessage(this.type + " erhält das Upgrade: " + upgradeType.name(), CombatMessageType.UPGRADE);
+        logMessageWithDelay(this.type + " erhält das Upgrade: " + upgradeType.name(), CombatMessageType.UPGRADE, 0);
         upgrade(upgradeType.lifeTotal, upgradeType.maxLife, upgradeType.armourValue, upgradeType.initiative, upgradeType.attack, upgradeType.defense, upgradeType.damage, upgradeType.finteLevel, upgradeType.wuchtschlagLevel);
     }
 

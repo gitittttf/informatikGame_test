@@ -6,6 +6,7 @@ import java.util.Queue;
 import com.informatikgame.combat.FightManager;
 import com.informatikgame.entities.Enemy;
 import com.informatikgame.entities.Player;
+import com.informatikgame.ui.GameplayScreen;
 import com.informatikgame.ui.StoryDatabank;
 import com.informatikgame.world.EnemyType;
 import com.informatikgame.world.PlayerType;
@@ -434,6 +435,28 @@ public class GameManager implements FightManager.CombatEventListener {
     @Override
     public void onCombatMessage(String message) {
         notifyLog(message);
+    }
+
+    @Override
+    public void onCombatMessage(String message, FightManager.CombatMessageType messageType) {
+        // Forward colored message to UI if it supports it
+        if (eventListener != null && eventListener instanceof GameplayScreen) {
+            ((GameplayScreen) eventListener).onCombatMessage(message, messageType);
+        } else {
+            // Fallback to regular message
+            notifyLog(message);
+        }
+    }
+
+    @Override
+    public void onQueuedCombatMessage(String message, FightManager.CombatMessageType messageType, long delayMs) {
+        // Forward queued message to UI if it supports it
+        if (eventListener != null && eventListener instanceof GameplayScreen) {
+            ((GameplayScreen) eventListener).onQueuedCombatMessage(message, messageType, delayMs);
+        } else {
+            // Fallback to regular message
+            notifyLog(message);
+        }
     }
 
     @Override

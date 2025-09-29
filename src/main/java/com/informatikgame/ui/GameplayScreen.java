@@ -84,7 +84,24 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
         }
     }
 
+    // Queued combat message with timestamp
+    private static class QueuedCombatMessage {
+
+        public final String message;
+        public final FightManager.CombatMessageType type;
+        public final long displayTime;
+
+        public QueuedCombatMessage(String message, FightManager.CombatMessageType type, long displayTime) {
+            this.message = message;
+            this.type = type;
+            this.displayTime = displayTime;
+        }
+    }
+
     private List<ColoredCombatMessage> coloredCombatLog = new ArrayList<>();
+    private List<QueuedCombatMessage> messageQueue = new ArrayList<>();
+    private long combatStartTime = 0;
+    private long lastScheduledDisplayTime = 0;
 
     // === GameEventListener Implementation ===
     @Override
@@ -102,6 +119,19 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
 
     // New method for colored combat messages
     public void onCombatMessage(String message, FightManager.CombatMessageType messageType) {
+        displayMessage(message, messageType);
+    }
+
+    // New method for queued combat messages
+    public void onQueuedCombatMessage(String message, FightManager.CombatMessageType messageType, long delayMs) {
+        long currentTime = System.currentTimeMillis();
+        // Ensure messages are always scheduled after the last scheduled message
+        long displayTime = Math.max(currentTime, lastScheduledDisplayTime) + delayMs;
+        lastScheduledDisplayTime = displayTime;
+        messageQueue.add(new QueuedCombatMessage(message, messageType, displayTime));
+    }
+
+    private void displayMessage(String message, FightManager.CombatMessageType messageType) {
         combatLog.add(message);
         coloredCombatLog.add(new ColoredCombatMessage(message, messageType));
         // Nur die letzten 15 Nachrichten behalten
@@ -147,16 +177,20 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
         currentState = UIState.COMBAT;
         inCombat = true;
         selectedEnemy = 0;
+        combatStartTime = System.currentTimeMillis();
+        lastScheduledDisplayTime = combatStartTime;
+        messageQueue.clear(); // Clear any previous queued messages
     }
 
     @Override
     public void onCombatEnd(boolean won) {
         inCombat = false;
+        messageQueue.clear(); // Clear any remaining queued messages
+        lastScheduledDisplayTime = 0; // Reset timeline
         if (won) {
             currentState = UIState.ROOM_TRANSITION;
             String message = ">>> Kampf gewonnen!";
-            combatLog.add(message);
-            coloredCombatLog.add(new ColoredCombatMessage(message, FightManager.CombatMessageType.COMBAT_END));
+            displayMessage(message, FightManager.CombatMessageType.COMBAT_END);
         }
     }
 
@@ -908,6 +942,9 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
     public void update() {
         animationFrame++;
 
+        // Process queued combat messages
+        processQueuedMessages();
+
         // Update story animation
         if (currentState == UIState.STORY_DISPLAY && !waitingForStoryInput) {
             storyAnimationFrame++;
@@ -916,6 +953,23 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
                 visibleStoryLines++;
             }
         }
+    }
+
+    private void processQueuedMessages() {
+        if (messageQueue.isEmpty()) {
+            return;
+        }
+
+        long currentTime = System.currentTimeMillis();
+
+        // Process messages that are ready to be displayed
+        messageQueue.removeIf(queuedMessage -> {
+            if (currentTime >= queuedMessage.displayTime) {
+                displayMessage(queuedMessage.message, queuedMessage.type);
+                return true; // Remove from queue
+            }
+            return false; // Keep in queue
+        });
     }
 
     private void drawStoryDisplay(TextGraphics graphics) {
