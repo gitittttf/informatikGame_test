@@ -158,11 +158,12 @@ public class GameManager implements FightManager.CombatEventListener {
         RoomType[] gameRooms = {
             RoomType.INTRO_ROOM,
             RoomType.FLOOR_ROOM,
+            RoomType.PANTRY_1,
             RoomType.LIBRARY_ROOM,
-            RoomType.PANTRY,
             RoomType.DINING_HALL,
             RoomType.LABORATORY,
             RoomType.CORRIDOR,
+            RoomType.PANTRY_2,
             RoomType.FINAL_ROOM
         };
 
@@ -388,13 +389,23 @@ public class GameManager implements FightManager.CombatEventListener {
     public String getRoomStory() {
         StoryDatabank[] stories = {
             StoryDatabank.INTRO_ROOM,
+            StoryDatabank.INTRO_ROOM_END,
             StoryDatabank.FLOOR_ROOM,
-            StoryDatabank.LIBRARY_ROOM,
+            StoryDatabank.FLOOR_ROOM_END,
             StoryDatabank.PANTRY_1,
+            StoryDatabank.PANTRY_1_END,
+            StoryDatabank.LIBRARY_ROOM,
+            StoryDatabank.LIBRARY_ROOM_END,
             StoryDatabank.DINING_HALL,
+            StoryDatabank.DINING_HALL_END,
             StoryDatabank.LABORATORY,
+            StoryDatabank.LABORATORY_END,
             StoryDatabank.CORRIDOR,
-            StoryDatabank.FINAL_ROOM
+            StoryDatabank.CORRIDOR_END,
+            StoryDatabank.PANTRY_2,
+            StoryDatabank.PANTRY_2_END,
+            StoryDatabank.FINAL_ROOM,
+            StoryDatabank.FINAL_ROOM_END
         };
 
         int index = Math.min(world.getCurrent_room_number(), stories.length - 1);

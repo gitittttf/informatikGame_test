@@ -700,9 +700,38 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
         graphics.putString(new TerminalPosition(x + 2, y), "[ INFO ]");
 
         if (inCombat && currentEnemies.length > 0) {
-            graphics.setForegroundColor(TextColor.ANSI.WHITE);
-            graphics.putString(new TerminalPosition(x + 2, y + 2), "Gegner:");
+            // Split the panel in half horizontally
+            int topHalfHeight = (height / 2) - 3;
+            int bottomHalfY = y + topHalfHeight;
+            int bottomHalfHeight = height - topHalfHeight;
 
+            // Draw horizontal separator line
+            graphics.setForegroundColor(ScreenManager.PRIMARY_COLOR);
+            for (int i = 1; i < width - 1; i++) {
+                graphics.setCharacter(x + i - 1, bottomHalfY, '═');
+            }
+            graphics.setCharacter(x, bottomHalfY, '╠');
+            graphics.setCharacter(x + width - 2, bottomHalfY, '╣');
+
+            // Top half: Detailed enemy info for selected enemy
+            if (selectedEnemyIndex >= 0 && selectedEnemyIndex < currentEnemies.length) {
+                Enemy selectedEnemy = currentEnemies[selectedEnemyIndex];
+
+                graphics.setForegroundColor(TextColor.ANSI.CYAN);
+                graphics.putString(new TerminalPosition(x + 2, y + 2), "Aktueller Gegner:");
+
+                // Enemy name/type
+                graphics.setForegroundColor(TextColor.ANSI.WHITE);
+                graphics.putString(new TerminalPosition(x + 2, y + 4), selectedEnemy.getType());
+
+                // Enemy HP bar
+                drawHealthBar(graphics, x + 2, y + 6, width - 6,
+                        "HP", selectedEnemy.getLifeTotal(), selectedEnemy.getMaxLife(), TextColor.ANSI.RED);
+            }
+
+            // Bottom half: Enemy list
+            graphics.setForegroundColor(TextColor.ANSI.WHITE);
+            graphics.putString(new TerminalPosition(x + 2, bottomHalfY + 1), "Alle Gegner:");
             for (int i = 0; i < currentEnemies.length; i++) {
                 Enemy enemy = currentEnemies[i];
                 TextColor color = (i == selectedEnemyIndex) ? TextColor.ANSI.CYAN : TextColor.ANSI.WHITE;
@@ -710,7 +739,10 @@ public class GameplayScreen extends GameScreen implements GameManager.GameEventL
 
                 String enemyInfo = String.format("%d. %s (%d HP)",
                         i + 1, enemy.getType(), enemy.getLifeTotal());
-                graphics.putString(new TerminalPosition(x + 2, y + 4 + i), enemyInfo);
+                int lineY = bottomHalfY + 3 + i;
+                if (lineY < y + height - 1) { // Make sure we don't draw outside the box
+                    graphics.putString(new TerminalPosition(x + 2, lineY), enemyInfo);
+                }
             }
         } else {
             graphics.setForegroundColor(TextColor.ANSI.WHITE);
