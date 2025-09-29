@@ -11,6 +11,8 @@ import com.informatikgame.world.EnemyType;
 import com.informatikgame.world.PlayerType;
 import com.informatikgame.world.Room;
 import com.informatikgame.world.RoomType;
+import com.informatikgame.world.RoomUpgrade;
+import com.informatikgame.world.UpgradeType;
 import com.informatikgame.world.World;
 
 /**
@@ -389,27 +391,38 @@ public class GameManager implements FightManager.CombatEventListener {
     public String getRoomStory() {
         StoryDatabank[] stories = {
             StoryDatabank.INTRO_ROOM,
-            StoryDatabank.INTRO_ROOM_END,
             StoryDatabank.FLOOR_ROOM,
-            StoryDatabank.FLOOR_ROOM_END,
             StoryDatabank.PANTRY_1,
-            StoryDatabank.PANTRY_1_END,
             StoryDatabank.LIBRARY_ROOM,
-            StoryDatabank.LIBRARY_ROOM_END,
             StoryDatabank.DINING_HALL,
-            StoryDatabank.DINING_HALL_END,
             StoryDatabank.LABORATORY,
-            StoryDatabank.LABORATORY_END,
             StoryDatabank.CORRIDOR,
-            StoryDatabank.CORRIDOR_END,
             StoryDatabank.PANTRY_2,
-            StoryDatabank.PANTRY_2_END,
-            StoryDatabank.FINAL_ROOM,
-            StoryDatabank.FINAL_ROOM_END
+            StoryDatabank.FINAL_ROOM
         };
 
         int index = Math.min(world.getCurrent_room_number(), stories.length - 1);
         return StoryDatabank.getStory(stories[index]);
+    }
+
+    /**
+     * Gets the exit story for the current room after combat is finished
+     */
+    public String getExitStory() {
+        StoryDatabank[] exitStories = {
+            StoryDatabank.INTRO_ROOM_END,
+            StoryDatabank.FLOOR_ROOM_END,
+            StoryDatabank.PANTRY_1_END,
+            StoryDatabank.LIBRARY_ROOM_END,
+            StoryDatabank.DINING_HALL_END,
+            StoryDatabank.LABORATORY_END,
+            StoryDatabank.CORRIDOR_END,
+            StoryDatabank.PANTRY_2_END,
+            StoryDatabank.FINAL_ROOM_END
+        };
+
+        int index = Math.min(world.getCurrent_room_number(), exitStories.length - 1);
+        return StoryDatabank.getStory(exitStories[index]);
     }
 
     // === CombatEventListener Implementation ===
@@ -458,8 +471,39 @@ public class GameManager implements FightManager.CombatEventListener {
             gameOver();
         } else {
             notifyLog("Kampf gewonnen!");
+            // Show exit story after combat victory, before next room transition
+            showExitStoryAndUpgrade();
+        }
+    }
+
+    /**
+     * Shows exit story and applies room upgrade after combat victory
+     */
+    private void showExitStoryAndUpgrade() {
+        if (eventListener != null) {
+            // Get the exit story for the current room
+            String exitStory = getExitStory();
+            if (exitStory != null && !exitStory.trim().isEmpty()) {
+                // Apply the room upgrade before showing the story
+                applyRoomUpgrade();
+
+                // Show the exit story
+                eventListener.onStoryDisplay(exitStory);
+                // After story is read, continueAfterExitStory() will be called
+            } else {
+                // No exit story for this room, go directly to next room check
+                checkForNextRoom();
+            }
+        } else {
             checkForNextRoom();
         }
+    }
+
+    /**
+     * Method for GUI to call when exit story reading is finished
+     */
+    public void continueAfterExitStory() {
+        checkForNextRoom();
     }
 
     /**
@@ -481,5 +525,43 @@ public class GameManager implements FightManager.CombatEventListener {
             eventListener.onRoomChange(roomNum, world.getRoom_count(), roomName);
         }
         processCurrentRoom();
+    }
+
+    /**
+     * Applies room-specific upgrade based on the current room Should be called
+     * when showing exit stories after clearing a room
+     */
+    public void applyRoomUpgrade() {
+        int currentRoomIndex = world.getCurrent_room_number();
+
+        // Get the RoomType from the world's room list
+        RoomType[] gameRooms = {
+            RoomType.INTRO_ROOM,
+            RoomType.FLOOR_ROOM,
+            RoomType.PANTRY_1,
+            RoomType.LIBRARY_ROOM,
+            RoomType.DINING_HALL,
+            RoomType.LABORATORY,
+            RoomType.CORRIDOR,
+            RoomType.PANTRY_2,
+            RoomType.FINAL_ROOM
+        };
+
+        if (currentRoomIndex >= 0 && currentRoomIndex < gameRooms.length) {
+            RoomType currentRoomType = gameRooms[currentRoomIndex];
+            RoomUpgrade roomUpgrade = RoomUpgrade.getUpgradeForRoom(currentRoomType);
+
+            if (roomUpgrade != null && roomUpgrade.getUpgradeType() != null) {
+                UpgradeType upgradeType = roomUpgrade.getUpgradeType();
+                player.upgrade(upgradeType);
+
+                // Notify the UI about health change if the upgrade affects health
+                if (upgradeType == UpgradeType.LIFE_UPGRADE && eventListener != null) {
+                    eventListener.onPlayerHealthChange(player.getLifeTotal(), player.getMaxLife());
+                }
+
+                notifyLog("Upgrade angewendet: " + upgradeType.name());
+            }
+        }
     }
 }
