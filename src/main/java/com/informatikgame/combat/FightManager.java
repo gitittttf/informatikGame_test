@@ -2,8 +2,6 @@ package com.informatikgame.combat;
 
 import java.util.ArrayList;
 import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.LinkedList;
 
 import com.informatikgame.entities.Character;
 import com.informatikgame.entities.Enemy;
@@ -118,7 +116,6 @@ public class FightManager {
     private ArrayList<Enemy> enemiesLeftToRight;
     private CombatEventListener eventListener;
     private boolean waitingForPlayerAction;
-    private int[] pendingPlayerAction;
     private int currentRound;
     private PriorityQueue<Character> currentActionQueue;
 
@@ -132,14 +129,11 @@ public class FightManager {
     }
 
     private void setupCombatEventListeners() {
-        Character.CombatEventListener characterListener = new Character.CombatEventListener() {
-            @Override
-            public void onCombatMessage(String message, Character.CombatMessageType type, long delayMs) {
-                if (eventListener != null) {
-                    // Convert Character.CombatMessageType to FightManager.CombatMessageType
-                    CombatMessageType fightManagerType = convertMessageType(type);
-                    eventListener.onQueuedCombatMessage(message, fightManagerType, delayMs);
-                }
+        Character.CombatEventListener characterListener = (String message, Character.CombatMessageType type, long delayMs) -> {
+            if (eventListener != null) {
+                // Convert Character.CombatMessageType to FightManager.CombatMessageType
+                CombatMessageType fightManagerType = convertMessageType(type);
+                eventListener.onQueuedCombatMessage(message, fightManagerType, delayMs);
             }
         };
 
@@ -147,28 +141,28 @@ public class FightManager {
     }
 
     private CombatMessageType convertMessageType(Character.CombatMessageType charType) {
-        switch (charType) {
-            case ROUND_START:
-                return CombatMessageType.ROUND_START;
-            case PLAYER_ACTION:
-                return CombatMessageType.PLAYER_ACTION;
-            case ENEMY_ACTION:
-                return CombatMessageType.ENEMY_ACTION;
-            case UPGRADE:
-                return CombatMessageType.UPGRADE;
-            case SPECIAL_MOVE:
-                return CombatMessageType.SPECIAL_MOVE;
-            case DAMAGE:
-                return CombatMessageType.DAMAGE;
-            case DEFENSE:
-                return CombatMessageType.DEFENSE;
-            case COMBAT_START:
-                return CombatMessageType.COMBAT_START;
-            case COMBAT_END:
-                return CombatMessageType.COMBAT_END;
-            default:
-                return CombatMessageType.PLAYER_ACTION;
-        }
+        return switch (charType) {
+            case ROUND_START ->
+                CombatMessageType.ROUND_START;
+            case PLAYER_ACTION ->
+                CombatMessageType.PLAYER_ACTION;
+            case ENEMY_ACTION ->
+                CombatMessageType.ENEMY_ACTION;
+            case UPGRADE ->
+                CombatMessageType.UPGRADE;
+            case SPECIAL_MOVE ->
+                CombatMessageType.SPECIAL_MOVE;
+            case DAMAGE ->
+                CombatMessageType.DAMAGE;
+            case DEFENSE ->
+                CombatMessageType.DEFENSE;
+            case COMBAT_START ->
+                CombatMessageType.COMBAT_START;
+            case COMBAT_END ->
+                CombatMessageType.COMBAT_END;
+            default ->
+                CombatMessageType.PLAYER_ACTION;
+        };
     }
 
     public void setCombatEventListener(CombatEventListener listener) {
@@ -187,22 +181,21 @@ public class FightManager {
         for (EnemyType enemy : enemyTypesLeftToRight) {
             this.enemiesLeftToRight.add(new Enemy(enemy));
             Enemy newestEnemy = enemiesLeftToRight.get(enemiesLeftToRight.size() - 1);
-            newestEnemy.setRandomizedInitiative(newestEnemy.getInitiative() + (int) Math.round(Math.random() * 5 + 1));
+            newestEnemy.setRandomizedInitiative(newestEnemy.getInitiative() + (int) Math.round(Math.random() * 6 + 1));
         }
+
+        this.player.setRandomizedInitiative(this.player.getInitiative() + (int) Math.round(Math.random() * 6 + 1));
 
         // Kampf status initialisieren
         this.currentRound = 1;
         this.waitingForPlayerAction = false;
 
         // Setup combat listeners for all enemies
-        Character.CombatEventListener enemyListener = new Character.CombatEventListener() {
-            @Override
-            public void onCombatMessage(String message, Character.CombatMessageType type, long delayMs) {
-                if (eventListener != null) {
-                    // Convert Character.CombatMessageType to FightManager.CombatMessageType
-                    CombatMessageType fightManagerType = convertMessageType(type);
-                    eventListener.onQueuedCombatMessage(message, fightManagerType, delayMs);
-                }
+        Character.CombatEventListener enemyListener = (String message, Character.CombatMessageType type, long delayMs) -> {
+            if (eventListener != null) {
+                // Convert Character.CombatMessageType to FightManager.CombatMessageType
+                CombatMessageType fightManagerType = convertMessageType(type);
+                eventListener.onQueuedCombatMessage(message, fightManagerType, delayMs);
             }
         };
 
@@ -213,7 +206,7 @@ public class FightManager {
         // Ui über kampf start benachrichtigen
         if (eventListener != null) {
             eventListener.onCombatMessage("=== Der Kampf beginnt! ===", CombatMessageType.COMBAT_START);
-            eventListener.onEnemyHealthUpdate(enemiesLeftToRight.toArray(new Enemy[0]));
+            eventListener.onEnemyHealthUpdate(enemiesLeftToRight.toArray(Enemy[]::new));
         }
 
         // Start first round
@@ -248,7 +241,7 @@ public class FightManager {
 
             // Update GUI with current enemy state after removing dead ones
             if (eventListener != null) {
-                eventListener.onEnemyHealthUpdate(enemiesLeftToRight.toArray(new Enemy[0]));
+                eventListener.onEnemyHealthUpdate(enemiesLeftToRight.toArray(Enemy[]::new));
             }
 
             currentRound++;
@@ -326,14 +319,10 @@ public class FightManager {
         // Execute player attack
         Enemy target = enemiesLeftToRight.get(targetEnemyIndex);
 
-        if (eventListener != null) {
-            eventListener.onQueuedCombatMessage("Du startest deinen Angriff!", CombatMessageType.PLAYER_ACTION, 0);
-        }
-
         player.attack(target, finteLevel, wuchtschlagLevel);
 
         if (eventListener != null) {
-            eventListener.onEnemyHealthUpdate(enemiesLeftToRight.toArray(new Enemy[0]));
+            eventListener.onEnemyHealthUpdate(enemiesLeftToRight.toArray(Enemy[]::new));
         }
 
         waitingForPlayerAction = false;
@@ -360,26 +349,6 @@ public class FightManager {
         if (eventListener != null) {
             eventListener.onCombatEnd(playerWon);
         }
-    }
-
-    // Method that GameManager can call to run the fight (for compatibility)
-    public boolean fight(EnemyType[] enemyTypesLeftToRight) {
-        startFight(enemyTypesLeftToRight);
-
-        // For now, we'll simulate the fight synchronously for compatibility
-        // In the future, this should be handled asynchronously through the GUI
-        while (player.isAlive() && !enemiesLeftToRight.isEmpty() && !waitingForPlayerAction) {
-            // This is a temporary solution - in a real GUI implementation,
-            // the fight would be controlled by user input events
-            try {
-                Thread.sleep(100); // Small delay
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            }
-        }
-
-        return player.isAlive();
     }
 
     public boolean isWaitingForPlayerAction() {

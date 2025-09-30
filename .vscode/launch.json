@@ -3,7 +3,7 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Launch Informatik Game",
+            "name": "Launch Main with javaw",
             "request": "launch",
             "mainClass": "com.informatikgame.core.Main",
             "projectName": "informatikgame",
